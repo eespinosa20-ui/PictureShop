@@ -1,0 +1,213 @@
+.layoutInicioSesion {
+  width: 100%;
+  position: relative;
+}
+
+.encabezadoInicioSesion {
+  position: absolute;
+  right: 0;
+  top: -125px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.contenidoInicioSesion {
+  display: grid;
+
+  /* Dos columnas: izquierda y derecha */
+  grid-template-columns: 1fr 1fr;
+
+  align-items: center;
+  gap: 40px;
+
+  width: 100%;
+  min-height: 500px;
+}
+
+.presentacionInicioSesion {
+  grid-column: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+
+
+
+/* ==========================================
+   FORMULARIO DE REGISTRO
+   ========================================== */
+
+/* Contenedor del formulario */
+
+.seccionFormularioInicioSesion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Formulario */
+
+.formularioInicioSesion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; 
+
+  width: 100%;
+  max-width: 500px;
+
+  padding: 30px;
+
+  background-color: #CAD0CB;
+  border: 2px solid #A5A5A5;
+  border-radius: 12px;
+}
+
+/* Encabezado propio del formulario */
+
+.encabezadoFormulario {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.encabezadoFormulario h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+
+/* Campos */
+
+.grupoCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.grupoCampo label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grupoCampo input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+
+  padding: 10px 13px;
+
+  background: #EFF1EE;
+  border: 1px solid #B8C0B9;
+  border-radius: 10px;
+
+  font-size: 14px;
+  outline: none;
+}
+
+.grupoCampo input:focus {
+  border-color: #536A55;
+}
+
+.grupoCampo input::placeholder {
+  color: #999999;
+}
+
+/* Campo de contraseña */
+
+.campoContrasena {
+  position: relative;
+  width: 100%;
+}
+
+.campoContrasena input {
+  padding-right: 85px;
+}
+
+.botonMostrar {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  background: transparent;
+  border: none;
+
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+/* Mensajes de error */
+
+.mensajeError {
+  font-size: 12px;
+  color: #C12D2D;
+}
+
+.mensajeInformacion {
+  padding: 10px;
+
+  background: #E5EEDB;
+  border-radius: 8px;
+
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Botón de registrar */
+
+.botonRegistrar {
+  align-self: center;
+
+  width: 75%;
+  min-height: 44px;
+
+  margin-top: 15px;
+
+  background: #D4DD9C;
+  border: 1px solid #B8C0B9;
+  border-radius: 10px;
+
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botonRegistrar:hover {
+  background: #C3D188;
+}
+
+/* Inicio de sesión */
+
+.enlaceInicioSesion {
+  font-size: 12px;
+  text-align: center;
+}
+
+.enlaceInicioSesion a {
+  color: #365D3D;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+
+.textoBienvenida {
+  font-size: 14px;
+  text-align: center;
+  color: #555555;
+  margin-bottom: 20px;
+}
