@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
-import "./style.css";
 import Image from "next/image";
+
+import "../style.css";
+
 
 export default function LayoutInicioSesion({
   children,
@@ -8,43 +10,37 @@ export default function LayoutInicioSesion({
   children: ReactNode;
 }) {
   return (
-    <main className="paginaInicioSesion">
+    <div className="layout">
 
-      <div className="contenedorPaginaInicioSesion">
+      <div className="contenido">
 
+        {/* Presentacion izquierda */}
 
+        <section className="presentacion">
 
-        {/* CONTENIDO PRINCIPAL */}
+          <div className="imagenRegistro" aria-hidden="true" />
 
-        <div className="contenidoInicioSesion">
-
-          {/* PRESENTACION */}
-
-          <section className="presentacionInicioSesion">
-            
-            <Image
+              <Image
               src="/fotografias.png"
               alt="Fotografias PictureShop"
               width={280}
               height={280}
-              className="imagenInicioSesion"
+              className="imagenRegistro"
             />
 
             <h1>Capturando emociones</h1>
             <h2>Bienvenido a PictureShop</h2>
 
-          </section>
+        </section>
 
-          {/* FORMULARIO */}
+        {/* Formulario derecho */}
 
-          <section className="seccionFormularioInicioSesio">
-            {children}
-          </section>
-
-        </div>
+        <section className="seccionFormulario">
+          {children}
+        </section>
 
       </div>
 
-    </main>
+    </div>
   );
 }

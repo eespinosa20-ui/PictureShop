@@ -3,14 +3,17 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import Boton from "../../(componentes)/botones/boton";
+import { useRouter } from "next/navigation";
+
 
 type Propiedades = {
-  tipo: "comprador" | "fotografo";
+  tipo: "cliente" | "fotografo";
 };
 
 type DatosRegistro = {
-  nombreCompleto: string;
-  numTelefono: string;
+  nombre: string;
+  telefono: string;
   correo: string;
   contrasena: string;
   confirmarContrasena: string;
@@ -19,9 +22,13 @@ type DatosRegistro = {
 export default function FormularioRegistro({
   tipo,
 }: Propiedades) {
+  const rutaRegistro =
+    tipo === "cliente"
+      ? "/api/registro/cliente"
+      : "/api/registro/fotografo";
   const [datos, setDatos] = useState<DatosRegistro>({
-    nombreCompleto: "",
-    numTelefono: "",
+    nombre: "",
+    telefono: "",
     correo: "",
     contrasena: "",
     confirmarContrasena: "",
@@ -34,7 +41,9 @@ export default function FormularioRegistro({
     Record<string, string>
   >({});
 
-  const [mensaje, setMensaje] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
+  const [mensajeExito, setMensajeExito] = useState("");
+  const router = useRouter(); 
 
   const actualizarCampo = (
     campo: keyof DatosRegistro,
@@ -50,7 +59,8 @@ export default function FormularioRegistro({
       [campo]: "",
     }));
 
-    setMensaje("");
+    setMensajeError("");
+    setMensajeExito("");
   };
 
   const requisitosContrasena = [
@@ -72,8 +82,8 @@ export default function FormularioRegistro({
   const validarFormulario = () => {
     const nuevosErrores: Record<string, string> = {};
 
-    if (datos.nombreCompleto.trim().length < 3) {
-      nuevosErrores.nombreCompleto =
+    if (datos.nombre.trim().length < 3) {
+      nuevosErrores.nombre =
         "Ingresa tu nombre completo.";
     }
 
@@ -89,17 +99,17 @@ export default function FormularioRegistro({
 
     if (requisitosCumplidos !== requisitosContrasena.length) {
       nuevosErrores.contrasena =
-        "La contrasena no cumple los requisitos.";
+        "La contraseña no cumple los requisitos.";
     }
 
     if (
       datos.contrasena !== datos.confirmarContrasena
     ) {
       nuevosErrores.confirmarContrasena =
-        "Las contrasenas no coinciden.";
+        "Las contraseñas no coinciden.";
     }
-    if (!/^[0-9]{10}$/.test(datos.numTelefono)) {
-        nuevosErrores.numTelefono =
+    if (!/^[0-9]{10}$/.test(datos.telefono)) {
+        nuevosErrores.telefono =
         "El telefono debe contener 10 digitos.";
     }
 
@@ -108,32 +118,65 @@ export default function FormularioRegistro({
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const registrarUsuario = (
-    evento: FormEvent<HTMLFormElement>
-  ) => {
-    evento.preventDefault();
-    setMensaje("");
 
-    if (!validarFormulario()) {
+const registrarUsuario = async (
+  evento: FormEvent<HTMLFormElement>
+) => {
+  evento.preventDefault();
+  setMensajeError("");
+  setMensajeExito("");
+
+  if (!validarFormulario()) {
+    return;
+  }
+
+  const rutaRegistro =
+    tipo === "cliente"
+      ? "/api/registro/cliente"
+      : "/api/registro/fotografo";
+
+  const formularioDatos = new FormData();
+
+  formularioDatos.append("nombre", datos.nombre);
+  formularioDatos.append("telefono", datos.telefono);
+  formularioDatos.append("correo", datos.correo);
+  formularioDatos.append("contrasena", datos.contrasena);
+
+  try {
+    const respuesta = await fetch(rutaRegistro, {
+      method: "POST",
+      body: formularioDatos,
+    });
+
+    const resultado = await respuesta.json();
+
+    if (!respuesta.ok) {
+      setMensajeError(resultado.mensaje || "Error al registrar usuario");
       return;
     }
 
-    // TODO:
-    // Enviar datos al servidor mediante HTTPS.
-    // Validar nuevamente los campos en el backend.
-    // Comprobar que correo y usuario no existan.
-    // Guardar la contrasena mediante un hash seguro.
-    // Asignar el rol autorizado desde el servidor.
-    // Nunca almacenar contrasenas en texto plano.
+    setMensajeExito(resultado.mensaje || "Datos recibidos correctamente");
 
-    setMensaje(
-      "Formulario validado. La conexion con el servidor de registro esta pendiente."
-    );
-  };
+    const rutaPrincipal =
+      tipo === "cliente"
+        ? "/principal"
+        : "/principalFotografo";
+        
+    setTimeout(() => {
+        router.push(rutaPrincipal);
+      }, 500);
+
+
+  } catch (error) {
+    console.error("Error de registro:", error);
+    setMensajeError("No se pudo conectar con el servidor");
+  }
+};
+
 
   return (
       <form
-        className="formularioRegistro"
+        className="formulario"
         onSubmit={registrarUsuario}
         noValidate
       >
@@ -144,27 +187,27 @@ export default function FormularioRegistro({
         {/* NOMBRE COMPLETO */}
 
         <div className="grupoCampo">
-          <label htmlFor="nombreCompleto">
+          <label htmlFor="nombre">
             Nombre completo
           </label>
 
           <input
-            id="nombreCompleto"
+            id="nombre"
             type="text"
             autoComplete="" //qué hace autoComplete? es un atributo de HTML que permite a los navegadores rellenar automáticamente campos de formulario con información previamente ingresada por el usuario. Mejora la experiencia del usuario al reducir la cantidad de escritura necesaria y puede ayudar a prevenir errores tipográficos.
             placeholder="Ejemplo: Juan Perez"
-            value={datos.nombreCompleto}
+            value={datos.nombre}
             onChange={(evento) =>
               actualizarCampo(
-                "nombreCompleto",
+                "nombre",
                 evento.target.value
               )
             }
           />
 
-          {errores.nombreCompleto && (
+          {errores.nombre && (
             <span className="mensajeError">
-              {errores.nombreCompleto}
+              {errores.nombre}
             </span>
           )}
         </div>
@@ -172,30 +215,30 @@ export default function FormularioRegistro({
         {/* NUMERO DE TELEFONO */}
 
         <div className="grupoCampo">
-          <label htmlFor="numTelefono">
+          <label htmlFor="telefono">
             Numero de telefono
           </label>
 
             <input
-                id="numTelefono"
+                id="telefono"
                 type="tel"
                 autoComplete="tel-national"
                 inputMode="numeric"
                 maxLength={10}
                 placeholder="Ejemplo: 4421234567"
-                value={datos.numTelefono}
+                value={datos.telefono}
                 onChange={(evento) =>
                     actualizarCampo(
-                    "numTelefono",
+                    "telefono",
                     evento.target.value
                     )
                 }
             />
           
 
-          {errores.numTelefono && (
+          {errores.telefono && (
             <span className="mensajeError">
-              {errores.numTelefono}
+              {errores.telefono}
             </span>
           )}
         </div>
@@ -363,24 +406,30 @@ export default function FormularioRegistro({
 
         {/* BOTON REGISTRO */}
 
-        <button
-          type="submit"
-          className="botonRegistrar"
-        >
-          Registrar
-        </button>
+        <Boton
+            texto="Registrar"
+            ancho={220}
+            alto={50}
+            type="submit"
+        />
 
-        {/* MENSAJE DEL FORMULARIO */}
+        {/* MENSAJES DEL FORMULARIO */}
 
-        {mensaje && (
+        {mensajeError && (
+          <p className="mensajeError" role="alert">
+            {mensajeError}
+          </p>
+        )}
+
+        {mensajeExito && (
           <p className="mensajeInformacion" role="status">
-            {mensaje}
+            {mensajeExito}
           </p>
         )}
 
         {/* ENLACE A INICIO DE SESION */}
 
-        <p className="enlaceInicioSesion">
+        <p className="enlace">
           ¿Ya tienes una cuenta?{" "}
           <Link href={`/inicioSesion/${tipo}`}>
             Iniciar sesion

@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
-import "./style.css";
+import "../style.css";
 import Image from "next/image";
+
+
+
 
 export default function LayoutRegistro({
   children,
@@ -8,18 +11,18 @@ export default function LayoutRegistro({
   children: ReactNode;
 }) {
   return (
-    <main className="paginaRegistro">
+    <main className="layout">
 
-      <div className="contenedorPaginaRegistro">
+      <div className="contenedorPagina">
 
 
         {/* CONTENIDO PRINCIPAL */}
 
-        <div className="contenidoRegistro">
+        <div className="contenido">
 
           {/* PRESENTACION */}
 
-          <section className="presentacionRegistro">
+          <section className="presentacion">
             
             <Image
               src="/fotografias.png"
@@ -36,7 +39,7 @@ export default function LayoutRegistro({
 
           {/* FORMULARIO */}
 
-          <section className="seccionFormularioRegistro">
+          <section className="seccionFormulario">
             {children}
           </section>
 

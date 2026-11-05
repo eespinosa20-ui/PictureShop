@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./(componentes)/botones/boton.css";
 import Image from "next/image";
 
 export default function LayoutGlobal({
