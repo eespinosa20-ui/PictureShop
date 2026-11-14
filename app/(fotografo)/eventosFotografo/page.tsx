@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useState, useMemo, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
 import Link from "next/link";
 import Boton from "@/app/(componentes)/botones/boton";
 
@@ -24,13 +31,22 @@ export default function PaginaEventosFotografo() {
   const [modalCrearAbierto, setModalCrearAbierto] = useState(false);
   const [nombreEvento, setNombreEvento] = useState("");
   const [costoFoto, setCostoFoto] = useState("");
+  const [archivosSeleccionados, setArchivosSeleccionados] = useState<File[]>([]);
+  const [nombreCarpeta, setNombreCarpeta] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [progresoCarga, setProgresoCarga] = useState<{
+    actual: number;
+    total: number;
+  } | null>(null);
+  const [mensajeEstado, setMensajeEstado] = useState("");
   const [errorCreacion, setErrorCreacion] = useState("");
   const [eventoRecienCreado, setEventoRecienCreado] = useState<{
     idEvento: number;
     claveEntrar: string;
     claveVerificacionPago: string;
   } | null>(null);
+
+  const inputCarpetaRef = useRef<HTMLInputElement>(null);
 
   // Estado del modal de consulta de claves
   const [modalClavesEvento, setModalClavesEvento] = useState<Evento | null>(null);
@@ -70,7 +86,52 @@ export default function PaginaEventosFotografo() {
     );
   }, [eventos, busqueda]);
 
-  // Manejador para crear evento
+  // Manejar selección de carpeta local con webkitdirectory
+  function manejarSeleccionCarpeta(e: ChangeEvent<HTMLInputElement>) {
+    const archivos = e.target.files;
+    if (!archivos || archivos.length === 0) return;
+
+    setErrorCreacion("");
+    const extensionesValidas = new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".avif",
+    ]);
+
+    const fotosValidas: File[] = [];
+    for (let i = 0; i < archivos.length; i++) {
+      const archivo = archivos[i];
+      const extension = "." + archivo.name.split(".").pop()?.toLowerCase();
+      if (
+        extensionesValidas.has(extension) ||
+        archivo.type.startsWith("image/")
+      ) {
+        fotosValidas.push(archivo);
+      }
+    }
+
+    if (fotosValidas.length === 0) {
+      setErrorCreacion(
+        "La carpeta seleccionada no contiene fotografías válidas (JPG, PNG o WebP)."
+      );
+      setArchivosSeleccionados([]);
+      setNombreCarpeta("");
+      return;
+    }
+
+    let carpetaNombre = "Carpeta seleccionada";
+    const rutaRelativa = fotosValidas[0]?.webkitRelativePath;
+    if (rutaRelativa && rutaRelativa.includes("/")) {
+      carpetaNombre = rutaRelativa.split("/")[0];
+    }
+
+    setArchivosSeleccionados(fotosValidas);
+    setNombreCarpeta(carpetaNombre);
+  }
+
+  // Manejador para crear evento y cargar fotografías
   async function manejarCrearEvento(eventoSubmit: FormEvent<HTMLFormElement>) {
     eventoSubmit.preventDefault();
     setErrorCreacion("");
@@ -82,14 +143,27 @@ export default function PaginaEventosFotografo() {
 
     const costoNumerico = Number(costoFoto);
     if (!Number.isFinite(costoNumerico) || costoNumerico < 0) {
-      setErrorCreacion("El costo por foto debe ser un número válido mayor o igual a 0.");
+      setErrorCreacion(
+        "El costo por foto debe ser un número válido mayor o igual a 0."
+      );
+      return;
+    }
+
+    if (archivosSeleccionados.length === 0) {
+      setErrorCreacion(
+        "Debes seleccionar una carpeta que contenga al menos una fotografía válida."
+      );
       return;
     }
 
     setGuardando(true);
+    setMensajeEstado("Creando evento...");
+
+    let idEventoCreado: number | null = null;
 
     try {
-      const respuesta = await fetch("/api/eventos", {
+      // 1. Crear el evento en MySQL y obtener idEvento y claves
+      const respuestaEvento = await fetch("/api/eventos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,39 +174,100 @@ export default function PaginaEventosFotografo() {
         }),
       });
 
-      const resultado = await respuesta.json();
+      const resultadoEvento = await respuestaEvento.json();
 
-      if (!respuesta.ok) {
-        setErrorCreacion(resultado.mensaje || "Error al crear el evento");
+      if (!respuestaEvento.ok) {
+        setErrorCreacion(resultadoEvento.mensaje || "Error al crear el evento");
         setGuardando(false);
+        setMensajeEstado("");
         return;
       }
 
-      // Éxito: guardar datos creados para mostrar claves y refrescar lista
+      idEventoCreado = resultadoEvento.idEvento;
+
+      // 2. Subir fotografías en lotes controlados
+      const TAMAÑO_LOTE = 8;
+      const totalFotos = archivosSeleccionados.length;
+      let fotosProcesadas = 0;
+
+      setProgresoCarga({ actual: 0, total: totalFotos });
+      setMensajeEstado(`Cargando 0 de ${totalFotos} fotografías...`);
+
+      for (let i = 0; i < totalFotos; i += TAMAÑO_LOTE) {
+        const lote = archivosSeleccionados.slice(i, i + TAMAÑO_LOTE);
+        const formData = new FormData();
+
+        for (const archivo of lote) {
+          formData.append("fotos", archivo);
+        }
+
+        const respuestaLote = await fetch(
+          `/api/eventosFotografo/${idEventoCreado}/fotos`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!respuestaLote.ok) {
+          const errorLote = await respuestaLote.json().catch(() => ({}));
+          throw new Error(
+            errorLote.mensaje || "Error al procesar el lote de fotografías"
+          );
+        }
+
+        fotosProcesadas += lote.length;
+        setProgresoCarga({ actual: fotosProcesadas, total: totalFotos });
+        setMensajeEstado(
+          `Cargando ${fotosProcesadas} de ${totalFotos} fotografías...`
+        );
+      }
+
+      // 3. Éxito total: guardar datos creados para mostrar claves y refrescar lista
       setEventoRecienCreado({
-        idEvento: resultado.idEvento,
-        claveEntrar: resultado.claveEntrar,
-        claveVerificacionPago: resultado.claveVerificacionPago,
+        idEvento: resultadoEvento.idEvento,
+        claveEntrar: resultadoEvento.claveEntrar,
+        claveVerificacionPago: resultadoEvento.claveVerificacionPago,
       });
 
-      // Recargar listado
       await cargarEventos();
       setNombreEvento("");
       setCostoFoto("");
+      setArchivosSeleccionados([]);
+      setNombreCarpeta("");
     } catch (error) {
-      console.error("Error al crear evento:", error);
-      setErrorCreacion("No se pudo conectar con el servidor");
+      console.error("Error al crear evento y subir fotografías:", error);
+
+      // Limpiar evento incompleto en caso de falla
+      if (idEventoCreado) {
+        await fetch(`/api/eventosFotografo/${idEventoCreado}`, {
+          method: "DELETE",
+        }).catch(() => {});
+      }
+
+      setErrorCreacion(
+        error instanceof Error
+          ? error.message
+          : "No se pudo completar la carga de fotografías"
+      );
     } finally {
       setGuardando(false);
+      setProgresoCarga(null);
+      setMensajeEstado("");
     }
   }
 
   function cerrarModalCrear() {
+    if (guardando) return; // Evitar cerrar durante la carga
     setModalCrearAbierto(false);
     setErrorCreacion("");
     setEventoRecienCreado(null);
     setNombreEvento("");
     setCostoFoto("");
+    setArchivosSeleccionados([]);
+    setNombreCarpeta("");
+    setProgresoCarga(null);
+    setMensajeEstado("");
   }
 
   function formatearFecha(fechaIso: string) {
@@ -326,17 +461,17 @@ export default function PaginaEventosFotografo() {
             aria-labelledby="tituloModalCrear"
           >
             <h3 id="tituloModalCrear" className="modalTitulo">
-              Evento
+              Agregar evento
             </h3>
 
             {eventoRecienCreado ? (
               // Vista de claves recién creadas
               <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "12px" }}>
-                <p className="modalMensajeExito">¡Evento creado exitosamente!</p>
+                <p className="modalMensajeExito">¡Evento creado y fotografías cargadas exitosamente!</p>
 
                 <div className="infoClavesCaja">
                   <div className="filaClave">
-                    <span className="etiquetaClave">ID del Evento (para clientes):</span>
+                    <span className="etiquetaClave">ID del Evento:</span>
                     <div className="valorClaveContenedor">
                       <span className="valorClave">{eventoRecienCreado.idEvento}</span>
                       <button
@@ -355,7 +490,7 @@ export default function PaginaEventosFotografo() {
                   </div>
 
                   <div className="filaClave">
-                    <span className="etiquetaClave">Clave de entrar:</span>
+                    <span className="etiquetaClave">Clave para que el cliente entre:</span>
                     <div className="valorClaveContenedor">
                       <span className="valorClave">{eventoRecienCreado.claveEntrar}</span>
                       <button
@@ -409,32 +544,118 @@ export default function PaginaEventosFotografo() {
                 </div>
               </div>
             ) : (
-              // Formulario estándar (Figma)
+              // Formulario estándar con 3 campos
               <form className="modalFormulario" onSubmit={manejarCrearEvento}>
+                {/* 1. Nombre del evento */}
                 <div className="modalCampo">
+                  <label htmlFor="nombreEventoInput" className="modalEtiqueta">
+                    Nombre del evento
+                  </label>
                   <input
+                    id="nombreEventoInput"
                     type="text"
                     placeholder="Ingresar nombre"
                     value={nombreEvento}
                     onChange={(e) => setNombreEvento(e.target.value)}
                     className="modalInput"
                     required
+                    disabled={guardando}
                     autoFocus
                   />
                 </div>
 
+                {/* 2. Costo por fotografía */}
                 <div className="modalCampo">
+                  <label htmlFor="costoFotoInput" className="modalEtiqueta">
+                    Costo por fotografía
+                  </label>
                   <input
+                    id="costoFotoInput"
                     type="number"
                     min="0"
                     step="any"
-                    placeholder="Costo por foto"
+                    placeholder="Ingresar costo"
                     value={costoFoto}
                     onChange={(e) => setCostoFoto(e.target.value)}
                     className="modalInput"
                     required
+                    disabled={guardando}
                   />
                 </div>
+
+                {/* 3. Seleccionar carpeta de fotografías */}
+                <div className="modalCampo">
+                  <label className="modalEtiqueta">Carpeta de fotografías</label>
+                  <input
+                    type="file"
+                    ref={inputCarpetaRef}
+                    // @ts-expect-error webkitdirectory es estándar en navegadores para seleccionar carpetas
+                    webkitdirectory=""
+                    directory=""
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={manejarSeleccionCarpeta}
+                    disabled={guardando}
+                  />
+
+                  {archivosSeleccionados.length === 0 ? (
+                    <button
+                      type="button"
+                      className="botonSeleccionarCarpeta"
+                      onClick={() => inputCarpetaRef.current?.click()}
+                      disabled={guardando}
+                    >
+                      <span aria-hidden="true"><svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                        </svg>
+                      </span>
+                      <span>Seleccionar carpeta</span>
+                    </button>
+                  ) : (
+                    <div className="cajaCarpetaSeleccionada">
+                      <div className="infoCarpetaSeleccionada">
+                        <span className="nombreCarpetaSeleccionada">
+                          {nombreCarpeta}
+                        </span>
+                        <span className="cantidadFotosSeleccionadas">
+                          {archivosSeleccionados.length} fotografías seleccionadas
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="botonCambiarCarpeta"
+                        onClick={() => inputCarpetaRef.current?.click()}
+                        disabled={guardando}
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Indicador de progreso real */}
+                {guardando && (
+                  <div className="contenedorProgresoCarga">
+                    {progresoCarga && (
+                      <div className="barraProgresoFondo">
+                        <div
+                          className="barraProgresoRelleno"
+                          style={{
+                            width: `${
+                              (progresoCarga.actual / progresoCarga.total) * 100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                    <p className="textoEstadoCarga">{mensajeEstado}</p>
+                  </div>
+                )}
 
                 {errorCreacion && (
                   <p className="modalMensajeError">{errorCreacion}</p>

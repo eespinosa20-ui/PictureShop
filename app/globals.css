@@ -68,6 +68,367 @@ body {
   padding: 35px;
 }
 
+/* ==========================================
+   COMPONENTES Y UTILIDADES COMPARTIDAS
+   ========================================== */
+
+/* BUSCADOR GENERAL */
+.contenedorBuscador {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+
+  padding: 10px 12px;
+  margin-bottom: 25px;
+
+  background-color: #AABAAE;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* CAMPO INTERIOR */
+
+.inputBuscador {
+  display: block;
+  width: 100%;
+  height: 40px;
+
+  padding: 8px 45px 8px 16px;
+
+  background-color: #DFE6DF;
+  border: 1px solid #90A18E;
+  border-radius: 10px;
+
+  color: #181913;
+  font-size: 15px;
+  font-family: inherit;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inputBuscador::placeholder {
+  color: #7B887B;
+}
+
+/* LUPA */
+
+.iconoBuscador {
+  position: absolute;
+  right: 27px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+  color: #28352D;
+}
+
+/* TARJETA DE EVENTO (FIGMA CARPETA) */
+.listaEventos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding-bottom: 90px;
+}
+
+.tarjetaEvento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background-color: #cad0cb;
+  border: 2px solid #181913;
+  border-radius: 14px;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+.tarjetaEventoContenido {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  flex: 1;
+}
+
+.iconoCarpetaEvento {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #181913;
+}
+
+.detallesEvento {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detallesEvento p {
+  margin: 0;
+  font-size: 14px;
+  color: #181913;
+  line-height: 1.3;
+}
+
+.nombreAlbum {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.costoAlbum {
+  font-weight: 600;
+  color: #2e3b2b;
+}
+
+.accionesTarjetaEvento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.botonPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 18px;
+  background-color: #d4dd9c;
+  color: #181913;
+  border: 1.5px solid #181913;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.botonPill:hover {
+  background-color: #c5ce8d;
+}
+
+.botonPill:active {
+  transform: scale(0.97);
+}
+
+/* BOTÓN FLOTANTE INFERIOR DERECHA (+ AGREGAR / + ID EVENTO) */
+.contenedorBotonAgregar {
+  position: absolute;
+  right: 20px;
+  bottom: 15px;
+  z-index: 10;
+}
+
+.botonAgregarEvento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background-color: #d4dd9c;
+  color: #181913;
+  border: 2.5px solid #181913;
+  border-radius: 35px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.botonAgregarEvento:hover {
+  background-color: #c4cd8c;
+  transform: translateY(-2px);
+}
+
+.iconoMas {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.textoBotonAgregar {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+/* MODALES GENERALES */
+.modalFondo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modalCaja {
+  width: 100%;
+  max-width: 440px;
+  background-color: #c3cdc3;
+  border: 2.5px solid #181913;
+  border-radius: 22px;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.modalTitulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 18px 0;
+  text-align: center;
+}
+
+.modalFormulario {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalCampo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 6px;
+}
+
+.modalEtiqueta {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b3329;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modalInput {
+  width: 100%;
+  height: 44px;
+  padding: 8px 16px;
+  background-color: #dce5dc;
+  border: 1.5px solid #9eaa9d;
+  border-radius: 22px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #181913;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  border-color: #181913;
+}
+
+.modalBotones {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.modalMensajeError {
+  font-size: 13px;
+  color: #b01b1b;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.modalMensajeExito {
+  font-size: 13px;
+  color: #276935;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+/* NAVEGACIÓN Y BREADCRUMBS */
+.barraNavegacionMigas {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.migasNavegacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #181913;
+  flex-wrap: wrap;
+}
+
+.migaEnlace {
+  color: #181913;
+  text-decoration: none;
+  font-weight: 700;
+  transition: opacity 0.15s ease;
+}
+
+.migaEnlace:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.migaSeparador {
+  color: #555e52;
+  font-weight: 700;
+  margin: 0 4px;
+}
+
+.migaActual {
+  color: #2e352b;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ESTADO VACÍO */
+.estadoVacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  color: #3b4239;
+}
+
+.estadoVacio p {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 768px) {

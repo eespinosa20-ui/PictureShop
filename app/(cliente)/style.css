@@ -177,3 +177,300 @@
   font-weight: 600;
 }
 
+/* ==========================================
+   NIVEL 1 — EVENTOS CLIENTE
+   ========================================== */
+.contenedorEventosCliente {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 600px;
+  position: relative;
+}
+
+/* ==========================================
+   NIVEL 2 — INTERIOR DEL EVENTO (FIGMA PÁGINA 8)
+   ========================================== */
+.contenedorInteriorEventoCliente {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 22px;
+}
+
+/* Tarjeta informativa del evento */
+.tarjetaInfoEventoCliente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 18px 24px;
+  background-color: #cad0cb;
+  border: 2px solid #181913;
+  border-radius: 14px;
+  box-sizing: border-box;
+  gap: 20px;
+}
+
+.tarjetaInfoContenido {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.iconoCarpetaGrande {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  color: #181913;
+  margin-top: 2px;
+}
+
+.detallesInfoEvento {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detallesInfoEvento p {
+  margin: 0;
+  font-size: 14px;
+  color: #181913;
+  line-height: 1.35;
+}
+
+.botonCarritoEvento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 75px;
+  height: 46px;
+  background-color: #92b4d8;
+  border: 2px solid #181913;
+  border-radius: 12px;
+  color: #181913;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Cuadrícula de fotos */
+.cuadriculaFotosCliente {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 22px;
+  width: 100%;
+  padding-bottom: 40px;
+}
+
+/* Tarjeta individual de foto (Figma) */
+.tarjetaFotoCliente {
+  display: flex;
+  flex-direction: column;
+  background-color: #cad0cb;
+  border: 2.5px solid #181913;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.tarjetaFotoCliente:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.marcoFotoCliente {
+  width: 100%;
+  height: 220px;
+  background-color: #1a1e1b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.imagenPreviaCliente {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.pieFotoCliente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #cad0cb;
+  border-top: 2px solid #181913;
+}
+
+.infoTextoFoto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.etiquetaIdFoto {
+  font-size: 13px;
+  font-weight: 700;
+  color: #181913;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.etiquetaPrecioFoto {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b3329;
+}
+
+.botonCarritoPill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  background-color: #d4dd9c;
+  border: 1.5px solid #181913;
+  border-radius: 18px;
+  color: #181913;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.botonCarritoPill:hover {
+  background-color: #c4cd8c;
+}
+
+/* ==========================================
+   NIVEL 3 — FOTOGRAFÍA INDIVIDUAL (FIGMA PÁGINA 9)
+   ========================================== */
+
+.contenedorDetalleFoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.marcoFotoIndividual {
+  width: 100%;
+  padding: 16px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background-color: #ffffff;
+  border: 3px solid #181913;
+  border-radius: 16px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.contenedorImagenGrande {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-width: 0;
+  background-color: transparent;
+}
+
+.imagenGrandeFoto {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+
+  /* Limita la altura para dejar visible
+     el precio y el carrito */
+  max-height: min(52vh, 460px);
+
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.pieFotoIndividual {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.datosFotoIndividual {
+  text-align: left;
+  min-width: 0;
+}
+
+.nombreFotoGrande {
+  font-size: 14px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.precioFotoGrande {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2e3b2b;
+  margin: 0;
+}
+
+
+/* Barra de navegación inferior (Atrás / Siguiente) */
+.barraNavegacionFotos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.botonNavegarFlecha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #181913;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.botonNavegarFlecha:hover:not(:disabled) {
+  background-color: #cad0cb;
+}
+
+.botonNavegarFlecha:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+
+.iconoMigaCarpeta {
+  display: inline-flex;
+  align-items: center;
+  color: #181913;
+}
