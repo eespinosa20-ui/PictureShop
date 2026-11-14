@@ -1,47 +1,50 @@
-import { inicioSesionCliente} from "@/servidor/autenticacion/inicioSesionCliente";
+
+import { inicioSesionCliente } from
+  "@/servidor/autenticacion/inicioSesionCliente";
+import { crearSesion } from
+  "@/servidor/autenticacion/sesion";
 
 export async function POST(request: Request) {
-
   try {
+    const formularioDatos = await request.formData();
 
-    const formularioDatos = await request.formData()
-    const correo = formularioDatos.get('correo')
-    const contrasena = formularioDatos.get('contrasena')
-
-    if (
-      typeof correo !== 'string' ||
-      typeof contrasena !== 'string'
-    ) {
-      return new Response('Datos de formulario inválidos', { status: 400 })
-    }
-
+    const correo = formularioDatos.get("correo");
+    const contrasena = formularioDatos.get("contrasena");
 
     if (
+      typeof correo !== "string" ||
+      typeof contrasena !== "string" ||
       !correo.trim() ||
-      !contrasena.trim() 
+      !contrasena.trim()
     ) {
       return Response.json(
-        { mensaje: "Campos incompletos o tipo de usuario invalido" },
+        { mensaje: "Campos incompletos" },
         { status: 400 }
       );
     }
 
-    const inicioSesionExitoso = await inicioSesionCliente(correo, contrasena);
+    const idCliente = await inicioSesionCliente(
+      correo,
+      contrasena
+    );
 
-    if (!inicioSesionExitoso) {
-        return Response.json(
-            { mensaje: "Correo o contraseña incorrectos" },
-            { status: 401 }
-        );
+    if (idCliente === null) {
+      return Response.json(
+        { mensaje: "Correo o contraseña incorrectos" },
+        { status: 401 }
+      );
     }
 
+    // Credenciales correctas: crear sesion
+    await crearSesion(idCliente, "cliente");
+
     return Response.json(
-      { status: 200, mensaje: "Inicio de sesión exitoso. Redirigiendo..." }
+      { mensaje: "Inicio de sesion exitoso" },
+      { status: 200 }
     );
 
   } catch (error) {
-    console.error("Error al verificar inicio de sesión:", error);
-
+    console.error("Error al iniciar sesion:", error);
 
     return Response.json(
       { mensaje: "Error interno del servidor" },

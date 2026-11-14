@@ -76,9 +76,7 @@ export default function FormularioInicioSesion({
         ? "/principal"
         : "/principalFotografo";
 
-      setTimeout(() => {
-        router.push(rutaPrincipal);
-      }, 500);
+      router.replace(rutaPrincipal);
 
       
     } catch (error) {
