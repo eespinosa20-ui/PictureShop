@@ -1,0 +1,904 @@
+/* ==========================================
+   PICTURESHOP - ESTILOS DEL FOTÓGRAFO
+   ========================================== */
+
+/* CONTENEDOR GENERAL */
+.layoutFotografo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 650px;
+}
+
+.contenidoFotografo {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 650px;
+  gap: 25px;
+}
+
+
+.pantallaFotografo {
+  flex: 1;
+  min-width: 0;
+  min-height: 650px;
+  padding: 10px 15px 30px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ==========================================
+   PÁGINA PRINCIPAL / BIENVENIDA FOTÓGRAFO
+   ========================================== */
+.contenedorPrincipalFotografo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 10px;
+}
+
+.encabezadoBienvenidaFotografo {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.tituloBienvenida {
+  font-size: 32px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 8px 0;
+}
+
+.subtituloBienvenida {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2b2e25;
+  margin: 0;
+}
+
+.seccionGuiaFotografo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+}
+
+.listaPasosFotografo {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.listaPasosFotografo li {
+  font-size: 17px;
+  font-weight: 600;
+  color: #181913;
+  line-height: 1.4;
+}
+
+.numeroPaso {
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.ilustracionCamaraFotografo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.imagenCamara {
+  object-fit: contain;
+}
+
+.notaExternaFotografo {
+  font-size: 13px;
+  color: #b01b1b;
+  text-align: center;
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.accionesInicioFotografo {
+  margin-top: 10px;
+}
+
+.botonAccesoEventos {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #d4dd9c;
+  color: #181913;
+  border: 2px solid #181913;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.botonAccesoEventos:hover {
+  background-color: #c4cd8c;
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   PÁGINA EVENTOS FOTÓGRAFO
+   ========================================== */
+.contenedorEventosFotografo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 600px;
+  position: relative;
+}
+
+/* BUSCADOR */
+
+
+/* CONTENEDOR EXTERIOR */
+
+.contenedorBuscador {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+
+  padding: 10px 12px;
+  margin-bottom: 25px;
+
+  background-color: #AABAAE;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* CAMPO INTERIOR */
+
+.inputBuscador {
+  display: block;
+  width: 100%;
+  height: 40px;
+
+  padding: 8px 45px 8px 16px;
+
+  background-color: #DFE6DF;
+  border: 1px solid #90A18E;
+  border-radius: 10px;
+
+  color: #181913;
+  font-size: 15px;
+  font-family: inherit;
+
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inputBuscador::placeholder {
+  color: #7B887B;
+}
+
+/* LUPA */
+
+.iconoBuscador {
+  position: absolute;
+  right: 27px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+  color: #28352D;
+}
+
+
+/* TÍTULO SECCIÓN */
+.tituloSeccionEventos {
+  font-size: 22px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 18px 0;
+}
+
+/* LISTA DE EVENTOS */
+.listaEventos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding-bottom: 90px; /* Espacio para el botón flotante */
+}
+
+/* TARJETA EVENTO FOTÓGRAFO */
+.tarjetaEvento {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  width: 100%;
+  min-height: 95px;
+  padding: 15px 20px;
+
+  background-color: #F1F1F1;
+  border: 1px solid #C8C8C8;
+  border-radius: 12px;
+
+  box-sizing: border-box;
+}
+
+.tarjetaEventoContenido {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  flex: 1;
+}
+
+.iconoCarpetaEvento {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #181913;
+}
+
+.detallesEvento {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detallesEvento p {
+  margin: 0;
+  font-size: 14px;
+  color: #181913;
+  line-height: 1.3;
+}
+
+.nombreAlbum {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.costoAlbum {
+  font-weight: 600;
+  color: #2e3b2b;
+}
+
+/* ACCIONES DE LA TARJETA */
+.accionesTarjetaEvento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.botonPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 18px;
+  background-color: #d4dd9c;
+  color: #181913;
+  border: 1.5px solid #181913;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.botonPill:hover {
+  background-color: #c5ce8d;
+}
+
+.botonPill:active {
+  transform: scale(0.97);
+}
+
+/* BOTÓN FLOTANTE "+ AGREGAR EVENTO" */
+.contenedorBotonAgregar {
+  position: absolute;
+  right: 20px;
+  bottom: 15px;
+  z-index: 10;
+}
+
+.botonAgregarEvento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background-color: #d4dd9c;
+  color: #181913;
+  border: 2.5px solid #181913;
+  border-radius: 35px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 3px 0px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.botonAgregarEvento:hover {
+  background-color: #c4cd8c;
+  transform: translateY(-2px);
+}
+
+.iconoMas {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.textoBotonAgregar {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+/* ==========================================
+   MODALES (CREAR EVENTO Y VER CLAVES)
+   ========================================== */
+.modalFondo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modalCaja {
+  width: 100%;
+  max-width: 440px;
+  background-color: #c3cdc3;
+  border: 2.5px solid #181913;
+  border-radius: 22px;
+  padding: 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.modalTitulo {
+  font-size: 24px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.modalFormulario {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalCampo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.modalInput {
+  width: 100%;
+  height: 44px;
+  padding: 8px 16px;
+  background-color: #dce5dc;
+  border: 1.5px solid #9eaa9d;
+  border-radius: 22px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #181913;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  border-color: #181913;
+}
+
+.modalBotones {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.modalMensajeError {
+  font-size: 13px;
+  color: #b01b1b;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.modalMensajeExito {
+  font-size: 13px;
+  color: #276935;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+/* CAJA DE CLAVES */
+.infoClavesCaja {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  background-color: #dce5dc;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #9eaa9d;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.filaClave {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.etiquetaClave {
+  font-size: 12px;
+  font-weight: 700;
+  color: #435041;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.valorClaveContenedor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #c2cec1;
+}
+
+.valorClave {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #181913;
+  word-break: break-all;
+}
+
+.botonCopiar {
+  background: none;
+  border: none;
+  color: #3f5539;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.botonCopiar:hover {
+  background-color: #eef3ed;
+}
+
+/* ESTADO VACÍO Y CARGA */
+.estadoVacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  color: #3b4239;
+}
+
+.estadoVacio p {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+}
+
+
+
+
+/* MENU LATERAL */
+
+.layoutFotografo .menuFotografo {
+  display: flex;
+  flex-direction: column;
+
+  width: 250px;
+  min-width: 220px;
+  min-height: 650px;
+
+  background-color: #CECBCC;
+  border: 2px solid #181913;
+  border-radius: 12px;
+
+  padding: 20px 12px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* IMAGEN SUPERIOR */
+
+.menuFotografo .imagenMenu {
+  display: block;
+
+  width: 120px;
+  height: 120px;
+
+  margin: 0 auto 20px;
+
+  background-image: url("/fotografias.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+/* OPCIONES */
+
+.menuFotografo .opcionesMenu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.menuFotografo .opcionMenu {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+  width: 100%;
+  min-height: 55px;
+
+  padding: 10px 14px;
+
+  background-color: #E6E4E4;
+  border: 1px solid #B5B5B5;
+  border-radius: 15px;
+
+  color: #181913;
+  text-decoration: none;
+
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.menuFotografo .opcionMenu:hover {
+  background-color: #D4DD9C;
+}
+
+.menuFotografo .opcionSeleccionada {
+  background-color: #CAD0CB;
+}
+
+/* ICONOS */
+
+.menuFotografo .iconoMenu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+}
+
+.menuFotografo .iconoMenu img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* TEXTO */
+
+.menuFotografo .textoMenu {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* CONTENIDO PRINCIPAL */
+
+.pantallaFotografo {
+  flex: 1;
+  min-width: 0;
+  min-height: 650px;
+
+  padding: 25px;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+.pantallaFotografo h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.pantallaFotografo h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* ==========================================
+   PANTALLA INTERIOR DEL EVENTO (ESTILO GOOGLE DRIVE)
+   ========================================== */
+.contenedorInteriorEvento {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 18px;
+}
+
+/* NAVEGACIÓN Y BREADCRUMBS */
+.barraNavegacionDrive {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.migasNavegacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.migaEnlace {
+  color: #181913;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background-color: #d4dd9c;
+  border: 1.5px solid #181913;
+  border-radius: 18px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.migaEnlace:hover {
+  background-color: #c4cd8c;
+  transform: translateX(-2px);
+}
+
+.migaSeparador {
+  color: #555e52;
+  font-weight: 700;
+}
+
+.migaActual {
+  color: #2e352b;
+  font-weight: 600;
+}
+
+
+
+/* ENCABEZADO DE CARPETA */
+.encabezadoCarpetaDrive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #8c9888;
+}
+
+.iconoCarpetaDrive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #181913;
+}
+
+.tituloCarpetaDrive {
+  font-size: 24px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0;
+}
+
+.subtituloCostoEvento {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5446;
+}
+
+/* CONTENEDOR Y TABLA DRIVE */
+.tablaDriveContenedor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #f7f9f6;
+  border: 2px solid #181913;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* CABECERA DE LA TABLA */
+.cabeceraTablaDrive {
+  display: flex;
+  align-items: center;
+  padding: 12px 18px;
+  background-color: #e2e8e0;
+  border-bottom: 1.5px solid #c2cec0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a4237;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.columnaNombre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconoOrdenDrive {
+  font-size: 12px;
+  color: #555e52;
+}
+
+.columnaFecha {
+  width: 180px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.columnaAcciones {
+  width: 50px;
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* FILAS DE FOTOS (CUERPO DE LA TABLA) */
+.cuerpoTablaDrive {
+  display: flex;
+  flex-direction: column;
+}
+
+.filaFotoDrive {
+  display: flex;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8e0;
+  transition: background-color 0.15s ease;
+  background-color: #ffffff;
+}
+
+.filaFotoDrive:last-child {
+  border-bottom: none;
+}
+
+.filaFotoDrive:hover {
+  background-color: #eaf1e7;
+}
+
+.celdaNombreDrive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.iconoArchivoFoto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nombreFotoTexto {
+  font-size: 14px;
+  font-weight: 600;
+  color: #181913;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.celdaFechaDrive {
+  font-size: 13px;
+  color: #4a5446;
+  font-weight: 500;
+}
+
+.celdaAccionesDrive {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.botonTresPuntosDrive {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: 900;
+  color: #555e52;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  line-height: 1;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.botonTresPuntosDrive:hover {
+  background-color: #cad4c8;
+  color: #181913;
+}
+
+/* ESTADO VACÍO EN DRIVE */
+.estadoVacioDrive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #4a5446;
+  gap: 12px;
+}
+
+.iconoCarpetaVaciaDrive {
+  color: #8c9888;
+}
+
+.textoSinFotos {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2e352b;
+  margin: 0;
+}
+
+.mensajeErrorDrive {
+  font-size: 15px;
+  font-weight: 600;
+  color: #b01b1b;
+  margin: 0;
+}
+
