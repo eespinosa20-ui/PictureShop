@@ -10,6 +10,10 @@ import {
 } from "react";
 import Link from "next/link";
 import Boton from "@/app/(componentes)/botones/boton";
+import {
+  formatearPrecio,
+  validarCostoFoto,
+} from "@/app/(componentes)/utilidades/precio";
 
 interface Evento {
   idEvento: number;
@@ -51,6 +55,17 @@ export default function PaginaEventosFotografo() {
   // Estado del modal de consulta de claves
   const [modalClavesEvento, setModalClavesEvento] = useState<Evento | null>(null);
   const [mensajeCopiado, setMensajeCopiado] = useState("");
+
+  // Estado del menu contextual y de la administracion del evento
+  const [menuEventoAbierto, setMenuEventoAbierto] = useState<number | null>(null);
+  const [eventoRenombrar, setEventoRenombrar] = useState<Evento | null>(null);
+  const [nuevoNombre, setNuevoNombre] = useState("");
+  const [errorRenombrar, setErrorRenombrar] = useState("");
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
+  const [eventoEliminar, setEventoEliminar] = useState<Evento | null>(null);
+  const [errorEliminar, setErrorEliminar] = useState("");
+  const [eliminandoEvento, setEliminandoEvento] = useState(false);
+  const [mensajeAccion, setMensajeAccion] = useState("");
 
   // Cargar eventos del fotógrafo autenticado
   async function cargarEventos() {
@@ -141,11 +156,9 @@ export default function PaginaEventosFotografo() {
       return;
     }
 
-    const costoNumerico = Number(costoFoto);
-    if (!Number.isFinite(costoNumerico) || costoNumerico < 0) {
-      setErrorCreacion(
-        "El costo por foto debe ser un número válido mayor o igual a 0."
-      );
+    const validacionCosto = validarCostoFoto(costoFoto);
+    if (!validacionCosto.valido) {
+      setErrorCreacion(validacionCosto.mensaje);
       return;
     }
 
@@ -170,7 +183,7 @@ export default function PaginaEventosFotografo() {
         },
         body: JSON.stringify({
           nombreEvento: nombreEvento.trim(),
-          costoFoto: costoNumerico,
+          costoFoto: validacionCosto.valor,
         }),
       });
 
@@ -240,7 +253,7 @@ export default function PaginaEventosFotografo() {
 
       // Limpiar evento incompleto en caso de falla
       if (idEventoCreado) {
-        await fetch(`/api/eventosFotografo/${idEventoCreado}`, {
+        await fetch(`/api/eventosFotografo/${idEventoCreado}/incompleto`, {
           method: "DELETE",
         }).catch(() => {});
       }
@@ -293,6 +306,150 @@ export default function PaginaEventosFotografo() {
     }
   }
 
+  function mostrarMensajeAccion(mensaje: string) {
+    setMensajeAccion(mensaje);
+    window.setTimeout(() => setMensajeAccion(""), 4000);
+  }
+
+  function abrirRenombrar(evento: Evento) {
+    setMenuEventoAbierto(null);
+    setMensajeAccion("");
+    setErrorRenombrar("");
+    setNuevoNombre(evento.nombreEvento);
+    setEventoRenombrar(evento);
+  }
+
+  function cerrarRenombrar() {
+    if (guardandoNombre) return;
+    setEventoRenombrar(null);
+    setErrorRenombrar("");
+    setNuevoNombre("");
+  }
+
+  async function manejarRenombrar(eventoSubmit: FormEvent<HTMLFormElement>) {
+    eventoSubmit.preventDefault();
+
+    if (!eventoRenombrar) return;
+
+    const nombreLimpio = nuevoNombre.trim();
+
+    if (!nombreLimpio) {
+      setErrorRenombrar("El nombre del evento no puede estar vacío.");
+      return;
+    }
+
+    if (nombreLimpio.length > 120) {
+      setErrorRenombrar("El nombre no puede superar 120 caracteres.");
+      return;
+    }
+
+    if (nombreLimpio === eventoRenombrar.nombreEvento) {
+      cerrarRenombrar();
+      return;
+    }
+
+    setGuardandoNombre(true);
+    setErrorRenombrar("");
+
+    try {
+      const respuesta = await fetch(
+        `/api/eventosFotografo/${eventoRenombrar.idEvento}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nombreEvento: nombreLimpio }),
+        }
+      );
+
+      const resultado = await respuesta.json().catch(() => ({}));
+
+      if (!respuesta.ok) {
+        setErrorRenombrar(
+          resultado.mensaje || "No se pudo renombrar el evento"
+        );
+        return;
+      }
+
+      const nombreAplicado =
+        typeof resultado.nombreEvento === "string"
+          ? resultado.nombreEvento
+          : nombreLimpio;
+
+      setEventos((anteriores) =>
+        anteriores.map((evento) =>
+          evento.idEvento === eventoRenombrar.idEvento
+            ? { ...evento, nombreEvento: nombreAplicado }
+            : evento
+        )
+      );
+
+      setEventoRenombrar(null);
+      setNuevoNombre("");
+      mostrarMensajeAccion("Evento renombrado correctamente.");
+    } catch (error) {
+      console.error("Error al renombrar evento:", error);
+      setErrorRenombrar("No se pudo conectar con el servidor");
+    } finally {
+      setGuardandoNombre(false);
+    }
+  }
+
+  function abrirEliminar(evento: Evento) {
+    setMenuEventoAbierto(null);
+    setMensajeAccion("");
+    setErrorEliminar("");
+    setEventoEliminar(evento);
+  }
+
+  function cerrarEliminar() {
+    if (eliminandoEvento) return;
+    setEventoEliminar(null);
+    setErrorEliminar("");
+  }
+
+  async function manejarEliminar() {
+    if (!eventoEliminar) return;
+
+    setEliminandoEvento(true);
+    setErrorEliminar("");
+
+    try {
+      const respuesta = await fetch(
+        `/api/eventosFotografo/${eventoEliminar.idEvento}`,
+        { method: "DELETE" }
+      );
+
+      const resultado = await respuesta.json().catch(() => ({}));
+
+      if (!respuesta.ok) {
+        setErrorEliminar(
+          resultado.mensaje || "No se pudo eliminar el evento"
+        );
+        return;
+      }
+
+      setEventos((anteriores) =>
+        anteriores.filter(
+          (evento) => evento.idEvento !== eventoEliminar.idEvento
+        )
+      );
+
+      setEventoEliminar(null);
+      mostrarMensajeAccion(
+        typeof resultado.advertencia === "string"
+          ? resultado.advertencia
+          : "Evento eliminado correctamente."
+      );
+    } catch (error) {
+      console.error("Error al eliminar evento:", error);
+      setErrorEliminar("No se pudo conectar con el servidor");
+    } finally {
+      setEliminandoEvento(false);
+    }
+  }
+
   return (
     <div className="contenedorEventosFotografo">
       {/* Buscador de eventos (Figma) */}
@@ -324,6 +481,16 @@ export default function PaginaEventosFotografo() {
 
       {/* Título de la sección */}
       <h2 className="tituloSeccionEventos">Recientemente agregado</h2>
+
+      {mensajeAccion && (
+        <p
+          className="modalMensajeExito"
+          role="status"
+          style={{ marginBottom: "14px" }}
+        >
+          {mensajeAccion}
+        </p>
+      )}
 
       {/* Estado de carga o error */}
       {cargando && (
@@ -366,7 +533,10 @@ export default function PaginaEventosFotografo() {
           ) : (
             <div className="listaEventos">
               {eventosFiltrados.map((evento) => (
-                <article key={evento.idEvento} className="tarjetaEvento">
+                <article
+                  key={evento.idEvento}
+                  className="tarjetaEvento tarjetaEventoConOpciones"
+                >
                   <div className="tarjetaEventoContenido">
                     {/* Icono de carpeta (Figma) */}
                     <div className="iconoCarpetaEvento" aria-hidden="true">
@@ -389,7 +559,7 @@ export default function PaginaEventosFotografo() {
                         Album: {evento.nombreEvento}
                       </p>
                       <p className="costoAlbum">
-                        Costo: ${Number(evento.costoFoto).toFixed(2)} por foto
+                        Costo: ${formatearPrecio(evento.costoFoto)} por foto
                       </p>
                     </div>
                   </div>
@@ -418,10 +588,48 @@ export default function PaginaEventosFotografo() {
                     <button
                       type="button"
                       className="botonPill"
-                      aria-label="Opciones del evento"
+                      aria-label={`Opciones de ${evento.nombreEvento}`}
+                      aria-haspopup="menu"
+                      aria-expanded={menuEventoAbierto === evento.idEvento}
+                      onClick={() =>
+                        setMenuEventoAbierto((anterior) =>
+                          anterior === evento.idEvento ? null : evento.idEvento
+                        )
+                      }
                     >
-                        ···
+                      ···
                     </button>
+
+                    {menuEventoAbierto === evento.idEvento && (
+                      <>
+                        <button
+                          type="button"
+                          className="capaCierreMenu"
+                          aria-label="Cerrar opciones del evento"
+                          onClick={() => setMenuEventoAbierto(null)}
+                        />
+
+                        <div className="menuOpcionesEvento" role="menu">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="opcionMenuEvento"
+                            onClick={() => abrirRenombrar(evento)}
+                          >
+                            Renombrar evento
+                          </button>
+
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="opcionMenuEvento opcionMenuEventoPeligro"
+                            onClick={() => abrirEliminar(evento)}
+                          >
+                            Eliminar evento
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </article>
               ))}
@@ -573,7 +781,9 @@ export default function PaginaEventosFotografo() {
                     id="costoFotoInput"
                     type="number"
                     min="0"
-                    step="any"
+                    max="999999.99"
+                    step="0.01"
+                    inputMode="decimal"
                     placeholder="Ingresar costo"
                     value={costoFoto}
                     onChange={(e) => setCostoFoto(e.target.value)}
@@ -753,6 +963,117 @@ export default function PaginaEventosFotografo() {
                 ancho={140}
                 alto={42}
                 onClick={() => setModalClavesEvento(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: RENOMBRAR EVENTO */}
+      {eventoRenombrar && (
+        <div className="modalFondo" onClick={cerrarRenombrar}>
+          <div
+            className="modalCaja"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalRenombrar"
+          >
+            <h3 id="tituloModalRenombrar" className="modalTitulo">
+              Renombrar evento
+            </h3>
+
+            <form className="modalFormulario" onSubmit={manejarRenombrar}>
+              <div className="modalCampo">
+                <label
+                  htmlFor="nuevoNombreEvento"
+                  className="modalEtiqueta"
+                >
+                  Nombre del evento
+                </label>
+                <input
+                  id="nuevoNombreEvento"
+                  type="text"
+                  className="modalInput"
+                  value={nuevoNombre}
+                  onChange={(e) => setNuevoNombre(e.target.value)}
+                  maxLength={120}
+                  required
+                  disabled={guardandoNombre}
+                  autoFocus
+                />
+              </div>
+
+              {errorRenombrar && (
+                <p className="modalMensajeError">{errorRenombrar}</p>
+              )}
+
+              <div className="modalBotones">
+                <button
+                  type="button"
+                  className="botonPill"
+                  onClick={cerrarRenombrar}
+                  disabled={guardandoNombre}
+                >
+                  Cancelar
+                </button>
+
+                <Boton
+                  texto={guardandoNombre ? "Guardando..." : "Guardar"}
+                  ancho={150}
+                  alto={42}
+                  type="submit"
+                  disabled={guardandoNombre}
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: ELIMINAR EVENTO */}
+      {eventoEliminar && (
+        <div className="modalFondo" onClick={cerrarEliminar}>
+          <div
+            className="modalCaja"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalEliminar"
+          >
+            <h3 id="tituloModalEliminar" className="modalTitulo">
+              Eliminar evento
+            </h3>
+
+            <p className="modalTexto">
+              ¿Seguro que deseas eliminar el evento{" "}
+              <strong>{eventoEliminar.nombreEvento}</strong>? Se eliminarán sus
+              fotografías y los accesos de los clientes. Esta acción no se puede
+              deshacer.
+            </p>
+
+            {errorEliminar && (
+              <p className="modalMensajeError">{errorEliminar}</p>
+            )}
+
+            <div className="modalBotones">
+              <button
+                type="button"
+                className="botonPill"
+                onClick={cerrarEliminar}
+                disabled={eliminandoEvento}
+              >
+                Cancelar
+              </button>
+
+              <Boton
+                texto={
+                  eliminandoEvento ? "Eliminando..." : "Eliminar definitivamente"
+                }
+                ancho={210}
+                alto={42}
+                onClick={manejarEliminar}
+                disabled={eliminandoEvento}
               />
             </div>
           </div>

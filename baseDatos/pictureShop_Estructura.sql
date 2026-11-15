@@ -108,7 +108,7 @@ CREATE TABLE `evento` (
   `idFotografo` int DEFAULT NULL,
   `nombreEvento` varchar(120) COLLATE latin1_spanish_ci DEFAULT NULL,
   `ubicacionEvento` varchar(200) COLLATE latin1_spanish_ci DEFAULT NULL,
-  `costoFoto` decimal(10,0) DEFAULT NULL,
+  `costoFoto` decimal(10,2) NOT NULL,
   `claveEntrar` varchar(120) COLLATE latin1_spanish_ci DEFAULT NULL,
   `ubicacionArchivos` varchar(255) COLLATE latin1_spanish_ci DEFAULT NULL,
   `claveVerificacionPago` varchar(120) COLLATE latin1_spanish_ci NOT NULL,

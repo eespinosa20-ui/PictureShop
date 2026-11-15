@@ -2,6 +2,7 @@
 import { obtenerSesion } from "@/servidor/autenticacion/sesion";
 import { crearEvento } from "@/servidor/eventos/crearEvento";
 import { obtenerEventosFotografo } from "@/servidor/eventos/obtenerEventosFotografo";
+import { validarCostoFoto } from "@/app/(componentes)/utilidades/precio";
 
 export async function GET() {
   try {
@@ -55,27 +56,41 @@ export async function POST(request: Request) {
       );
     }
     
-    const datos = await request.json();
-    const nombreEvento = datos.nombreEvento;
-    const costoFoto = datos.costoFoto;
+    const datos = (await request.json()) as {
+        nombreEvento?: unknown;
+        costoFoto?: unknown;
+    };
 
-    if (
-        typeof nombreEvento !== "string" ||
-        !nombreEvento.trim() ||
-        typeof costoFoto !== "number" ||
-        !Number.isFinite(costoFoto) ||
-        costoFoto < 0
-    ) {
-    return Response.json(
-        { mensaje: "Datos del evento invalidos" },
-        { status: 400 }
-    );
+    const nombreEvento =
+        typeof datos?.nombreEvento === "string" ? datos.nombreEvento.trim() : "";
+
+    if (!nombreEvento) {
+        return Response.json(
+            { mensaje: "Datos del evento invalidos" },
+            { status: 400 }
+        );
+    }
+
+    if (nombreEvento.length > 120) {
+        return Response.json(
+            { mensaje: "El nombre del evento no puede superar 120 caracteres" },
+            { status: 400 }
+        );
+    }
+
+    const validacionCosto = validarCostoFoto(datos?.costoFoto);
+
+    if (!validacionCosto.valido) {
+        return Response.json(
+            { mensaje: validacionCosto.mensaje },
+            { status: 400 }
+        );
     }
 
     const eventoCreado = await crearEvento(
         sesion.idUsuario,
-        nombreEvento.trim(),
-        costoFoto
+        nombreEvento,
+        validacionCosto.valor
     );
 
     return Response.json(

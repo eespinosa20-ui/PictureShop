@@ -6,7 +6,7 @@ import type { ResultSetHeader } from "mysql2/promise";
 export async function crearEvento(
   idFotografo: number,
   nombreEvento: string,
-  costoFoto: number
+  costoFoto: string
 ) {
   const claveEntrar = randomBytes(8)
     .toString("hex")

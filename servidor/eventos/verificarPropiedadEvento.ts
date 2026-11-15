@@ -6,7 +6,7 @@ export interface InfoEvento extends RowDataPacket {
   idEvento: number;
   idFotografo: number;
   nombreEvento: string;
-  costoFoto: number;
+  costoFoto: string;
   fechaCreacion: string | Date;
 }
 

@@ -6,7 +6,7 @@ export interface EventoFotografo extends RowDataPacket {
   idEvento: number;
   idFotografo: number;
   nombreEvento: string;
-  costoFoto: number;
+  costoFoto: string;
   claveEntrar: string;
   claveVerificacionPago: string;
   fechaCreacion: string | Date;

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Boton from "@/app/(componentes)/botones/boton";
+import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
 
 interface InfoEvento {
   idEvento: number;
@@ -153,7 +154,7 @@ export default function PaginaContenidoEvento() {
         </h1>
         {evento && (
           <span className="subtituloCostoEvento">
-            (${Number(evento.costoFoto).toFixed(2)} por foto)
+            (${formatearPrecio(evento.costoFoto)} por foto)
           </span>
         )}
       </header>

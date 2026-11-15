@@ -198,6 +198,57 @@ body {
   flex-shrink: 0;
 }
 
+/* MENU CONTEXTUAL DE LA TARJETA DE EVENTO */
+.tarjetaEventoConOpciones {
+  position: relative;
+}
+
+.menuOpcionesEvento {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px;
+  background-color: #ffffff;
+  border: 1.5px solid #181913;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.opcionMenuEvento {
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 7px;
+  color: #181913;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.opcionMenuEvento:hover {
+  background-color: #e6ece2;
+}
+
+.opcionMenuEventoPeligro {
+  color: #b01b1b;
+}
+
+.capaCierreMenu {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
 .botonPill {
   display: inline-flex;
   align-items: center;
@@ -365,6 +416,14 @@ body {
   color: #276935;
   font-weight: 600;
   margin: 0;
+  text-align: center;
+}
+
+.modalTexto {
+  margin: 0 0 14px 0;
+  color: #2b3329;
+  font-size: 14px;
+  line-height: 1.45;
   text-align: center;
 }
 
