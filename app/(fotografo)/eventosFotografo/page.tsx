@@ -9,7 +9,7 @@ import {
   type ChangeEvent,
   type CSSProperties,
 } from "react";
-import Link from "next/link";
+import Link from "next/link"; 
 import Boton from "@/app/(componentes)/botones/boton";
 import {
   formatearPrecio,
@@ -284,6 +284,10 @@ export default function PaginaEventosFotografo() {
       });
 
       await cargarEventos();
+
+      setModalCrearAbierto(false);
+      setEventoRecienCreado(null);
+
       setNombreEvento("");
       setCostoFoto("");
       setArchivosSeleccionados([]);
@@ -619,7 +623,7 @@ export default function PaginaEventosFotografo() {
 
 
       {/* Título de la sección */}
-      <h2 className="tituloSeccionEventos">Recientemente agregado</h2>
+      <h2 className="tituloSeccionEventos">Tus eventos</h2>
 
       <div className="areaDesplazableArchivos" role="region" aria-label="Eventos del fotógrafo" tabIndex={0} onScroll={() => setMenuEventoAbierto(null)}>
         {mensajeAccion && (

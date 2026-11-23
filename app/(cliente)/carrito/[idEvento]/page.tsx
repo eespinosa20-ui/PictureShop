@@ -284,8 +284,12 @@ export default function PaginaCarritoCliente() {
             antes de finalizar la compra.
           </p>
         </div>
-
-
+          <div
+            className="areaDesplazableCarrito"
+            role="region"
+            aria-label="Fotografías seleccionadas del carrito"
+            tabIndex={0}
+          >
             <div className="listaCarritoCliente">
               {carrito.fotos.map((foto) => (
                 <article
@@ -311,20 +315,8 @@ export default function PaginaCarritoCliente() {
                     </div>
 
                     <div className="detallesInfoEvento">
-                      <p>
-                        <strong>Fecha de publicación:</strong>{" "}
-                        {formatearFecha(foto.fechaPublicacion)}
-                      </p>
-                      <p>
-                        <strong>Autor:</strong>{" "}
-                        {carrito.nombreFotografo || "Fotógrafo"}
-                      </p>
-                      <p>
-                        <strong>Album:</strong> {carrito.nombreEvento}
-                      </p>
-                      <p>
-                        <strong>Precio:</strong> $
-                        {formatearPrecio(foto.costoFoto)}
+                      <p className="nombreFotoCarrito">
+                        <strong>{foto.nombreFoto}</strong>
                       </p>
                     </div>
                   </div>
@@ -349,27 +341,7 @@ export default function PaginaCarritoCliente() {
                 </article>
               ))}
             </div>
-
-            <div className="tarjetaInfoEventoCliente resumenCarritoCliente">
-              <div className="detallesInfoEvento">
-                <p>
-                  <strong>Cantidad de fotografías:</strong>{" "}
-                  {carrito.cantidad}
-                </p>
-                <p className="totalCarritoCliente">
-                  <strong>Total:</strong> ${formatearPrecio(carrito.total)}
-                </p>
-              </div>
-
-              <Boton
-                texto="Finalizar compra"
-                aria-haspopup="dialog"
-                ancho={220}
-                alto={48}
-                onClick={abrirConfirmacionPedido}
-                disabled={idFotoQuitando !== null || confirmando}
-              />
-            </div>
+          </div>
           </>
         )}
       <dialog
