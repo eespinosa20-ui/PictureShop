@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Boton from "@/app/(componentes)/botones/boton";
+import NavegacionCarpetas from "@/app/(componentes)/navegacion/navegacionCarpetas";
 import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
 
 interface InfoEvento {
@@ -91,24 +91,16 @@ export default function PaginaContenidoEvento() {
 
   return (
     <div className="contenedorInteriorEvento">
-      {/* Barra de navegación superior / Breadcrumbs */}
-      <nav className="barraNavegacionDrive" aria-label="Ruta de navegación">
-        <div className="migasNavegacion">
-          <Link
-            href="/eventosFotografo"
-            className="migaEnlace"
-            title="Volver a la lista de eventos"
-          >
-            ← Volver a Eventos
-          </Link>
-          <span className="migaSeparador" aria-hidden="true">
-            /
-          </span>
-          <span className="migaActual">
-            {evento ? evento.nombreEvento : `Evento #${idEvento}`}
-          </span>
-        </div>
-      </nav>
+      <NavegacionCarpetas
+        elementos={[
+          {
+            texto: "Recientemente agregado",
+            ruta: "/eventosFotografo",
+            titulo: "Volver a la lista de eventos",
+          },
+          { texto: evento?.nombreEvento ?? `Evento #${idEvento}`, icono: "carpeta" },
+        ]}
+      />
 
       {/* Buscador de fotos */}
       <div className="contenedorBuscador">

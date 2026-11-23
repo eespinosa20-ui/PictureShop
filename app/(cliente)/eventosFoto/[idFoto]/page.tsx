@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Boton from "@/app/(componentes)/botones/boton";
+import NavegacionCarpetas from "@/app/(componentes)/navegacion/navegacionCarpetas";
 import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
+import {
+  agregarFotoCarrito,
+  obtenerCarritoEvento,
+} from "@/app/(componentes)/carrito/apiCarrito";
 
 interface EventoCliente {
   idEvento: number;
@@ -36,6 +40,13 @@ export default function PaginaDetalleFotoCliente() {
   const [idFotoSiguiente, setIdFotoSiguiente] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [enCarrito, setEnCarrito] = useState(false);
+  const [agregando, setAgregando] = useState(false);
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [mensajeAccionEsError, setMensajeAccionEsError] = useState(false);
+  const temporizadorMensaje = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   useEffect(() => {
     async function cargarDetalleFoto() {
@@ -65,6 +76,20 @@ export default function PaginaDetalleFotoCliente() {
         setEvento(resultado.evento);
         setIdFotoAnterior(resultado.idFotoAnterior);
         setIdFotoSiguiente(resultado.idFotoSiguiente);
+
+        const resultadoCarrito = await obtenerCarritoEvento(
+          resultado.evento.idEvento
+        );
+
+        if (resultadoCarrito.exito) {
+          setEnCarrito(
+            resultadoCarrito.datos.fotos.some(
+              (item) => item.idFoto === Number(idFoto)
+            )
+          );
+        } else {
+          setEnCarrito(false);
+        }
       } catch (err) {
         console.error("Error al cargar detalle de foto:", err);
         setError("No se pudo conectar con el servidor");
@@ -76,66 +101,72 @@ export default function PaginaDetalleFotoCliente() {
     cargarDetalleFoto();
   }, [idFoto, idEventoParam]);
 
+  useEffect(() => {
+    return () => {
+      if (temporizadorMensaje.current) {
+        clearTimeout(temporizadorMensaje.current);
+      }
+    };
+  }, []);
+
+  function mostrarMensajeCarrito(texto: string, esError = false) {
+    setMensajeAccion(texto);
+    setMensajeAccionEsError(esError);
+
+    if (temporizadorMensaje.current) {
+      clearTimeout(temporizadorMensaje.current);
+    }
+
+    temporizadorMensaje.current = setTimeout(() => {
+      setMensajeAccion("");
+    }, 3500);
+  }
+
+  async function manejarAgregarFoto() {
+    if (!evento || !foto || agregando || enCarrito) {
+      return;
+    }
+
+    setAgregando(true);
+
+    try {
+      const resultado = await agregarFotoCarrito(
+        evento.idEvento,
+        foto.idFoto
+      );
+
+      if (!resultado.exito) {
+        mostrarMensajeCarrito(resultado.mensaje, true);
+        return;
+      }
+
+      setEnCarrito(true);
+      mostrarMensajeCarrito(
+        resultado.datos.yaExistia
+          ? "La fotografía ya estaba en el carrito."
+          : "Fotografía agregada al carrito."
+      );
+    } finally {
+      setAgregando(false);
+    }
+  }
+
   return (
     <div className="contenedorDetalleFoto">
-      {/* Nivel 3: Barra de navegación / Breadcrumbs (Figma página 9) */}
-      <nav className="barraNavegacionMigas" aria-label="Ruta de navegación">
-        <div className="migasNavegacion">
-          <Link
-            href="/eventos"
-            className="migaEnlace"
-            title="Volver a Recientemente agregado"
-          >
-            Recientemente agregado
-          </Link>
-          <span className="migaSeparador" aria-hidden="true">
-            &gt;
-          </span>
-          {evento ? (
-            <Link
-              href={`/eventosCarpeta/${evento.idEvento}`}
-              className="migaEnlace"
-              title={`Volver al evento ${evento.nombreEvento}`}
-            >
-              <span className="iconoMigaCarpeta" aria-hidden="true">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-              </svg>
-            </span>
-            {evento ? evento.nombreEvento : "Cargando..."}
-            </Link>
-          ) : (
-            <span>Evento</span>
-          )}
-          <span className="migaSeparador" aria-hidden="true">
-            &gt;
-          </span>
-          <span className="migaActual">
-            <span aria-hidden="true">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="m21 15-5-5L5 21" />
-              </svg>
-            </span>
-          </span>
-        </div>
-      </nav>
+      <NavegacionCarpetas
+        elementos={[
+          { texto: "Recientemente agregado", ruta: "/eventos", titulo: "Volver a Recientemente agregado" },
+          evento
+            ? {
+                texto: evento.nombreEvento,
+                ruta: `/eventosCarpeta/${evento.idEvento}`,
+                icono: "carpeta",
+                titulo: `Volver al evento ${evento.nombreEvento}`,
+              }
+            : { texto: "Evento" },
+          { texto: foto?.nombreFoto ?? "Fotografía", icono: "fotografia" },
+        ]}
+      />
 
       {/* Estados de carga o error */}
       {cargando && (
@@ -180,27 +211,72 @@ export default function PaginaDetalleFotoCliente() {
               {/* Botón de carrito según Figma página 9 */}
               <button
                 type="button"
-                className="botonCarritoPill"
+                className={`botonCarritoPill ${
+                  enCarrito ? "botonCarritoPillAgregado" : ""
+                }`}
                 style={{ padding: "8px 24px" }}
-                title="Agregar al carrito"
-                aria-label="Agregar al carrito"
+                onClick={manejarAgregarFoto}
+                disabled={enCarrito || agregando}
+                title={
+                  enCarrito
+                    ? "Fotografía en el carrito"
+                    : agregando
+                      ? "Agregando..."
+                      : "Agregar al carrito"
+                }
+                aria-label={
+                  enCarrito
+                    ? "Fotografía en el carrito"
+                    : "Agregar al carrito"
+                }
+                aria-pressed={enCarrito}
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
+                {enCarrito ? (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                  </svg>
+                )}
               </button>
             </div>
+
+            {mensajeAccion && (
+              <p
+                className={
+                  mensajeAccionEsError
+                    ? "modalMensajeError"
+                    : "modalMensajeExito"
+                }
+                role={mensajeAccionEsError ? "alert" : "status"}
+              >
+                {mensajeAccion}
+              </p>
+            )}
           </div>
 
           {/* Navegación inferior: Atrás / Siguiente (Figma página 9) */}

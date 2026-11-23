@@ -30,112 +30,6 @@
 }
 
 /* ==========================================
-   PÁGINA PRINCIPAL / BIENVENIDA FOTÓGRAFO
-   ========================================== */
-.contenedorPrincipalFotografo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 20px 10px;
-}
-
-.encabezadoBienvenidaFotografo {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.tituloBienvenida {
-  font-size: 32px;
-  font-weight: 700;
-  color: #181913;
-  margin: 0 0 8px 0;
-}
-
-.subtituloBienvenida {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2b2e25;
-  margin: 0;
-}
-
-.seccionGuiaFotografo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 24px;
-}
-
-.listaPasosFotografo {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.listaPasosFotografo li {
-  font-size: 17px;
-  font-weight: 600;
-  color: #181913;
-  line-height: 1.4;
-}
-
-.numeroPaso {
-  font-weight: 700;
-  margin-right: 6px;
-}
-
-.ilustracionCamaraFotografo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 10px 0;
-}
-
-.imagenCamara {
-  object-fit: contain;
-}
-
-.notaExternaFotografo {
-  font-size: 13px;
-  color: #b01b1b;
-  text-align: center;
-  max-width: 480px;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.accionesInicioFotografo {
-  margin-top: 10px;
-}
-
-.botonAccesoEventos {
-  display: inline-block;
-  padding: 10px 24px;
-  background-color: #d4dd9c;
-  color: #181913;
-  border: 2px solid #181913;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 15px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.2s ease;
-}
-
-.botonAccesoEventos:hover {
-  background-color: #c4cd8c;
-  transform: translateY(-1px);
-}
-
-/* ==========================================
    PÁGINA EVENTOS FOTÓGRAFO
    ========================================== */
 .contenedorEventosFotografo {
@@ -788,25 +682,16 @@
 }
 
 /* NAVEGACIÓN Y BREADCRUMBS */
-.barraNavegacionDrive {
-  display: flex;
-  align-items: center;
-  width: 100%;
+.contenedorInteriorEvento .barraNavegacionMigas {
+  margin-bottom: 0;
 }
 
-.migasNavegacion {
-  display: flex;
-  align-items: center;
+.contenedorInteriorEvento .migasNavegacion {
   gap: 10px;
   font-size: 14px;
 }
 
-.migaEnlace {
-  color: #181913;
-  text-decoration: none;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
+.contenedorInteriorEvento .migaEnlace {
   padding: 6px 14px;
   background-color: #d4dd9c;
   border: 1.5px solid #181913;
@@ -814,18 +699,14 @@
   transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
-.migaEnlace:hover {
+.contenedorInteriorEvento .migaEnlace:hover {
   background-color: #c4cd8c;
   transform: translateX(-2px);
+  text-decoration: none;
+  opacity: 1;
 }
 
-.migaSeparador {
-  color: #555e52;
-  font-weight: 700;
-}
-
-.migaActual {
-  color: #2e352b;
+.contenedorInteriorEvento .migaActual {
   font-weight: 600;
 }
 
@@ -1018,3 +899,138 @@
   margin: 0;
 }
 
+
+
+/* ====================================
+   PANTALLA PRINCIPAL DEL FOTOGRAFO
+==================================== */
+
+.principalFotografo {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 45px 24px;
+  box-sizing: border-box;
+}
+
+/* Contenedor interno centrado */
+
+.contenidoPrincipalFotografo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Bienvenida */
+
+.bienvenidaFotografo {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.bienvenidaFotografo h1 {
+  font-size: 30px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 8px;
+}
+
+.bienvenidaFotografo p {
+  font-size: 21px;
+  color: #181913;
+  margin: 0;
+}
+
+/* Recuadro de instrucciones */
+
+.tarjetaGuiaFotografo {
+  width: 100%;
+  max-width: 650px;
+  background-color: #e4e4e4;
+  border: 1.5px solid #181913;
+  border-radius: 10px;
+  padding: 32px 38px 22px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Instrucciones */
+
+.instruccionesFotografo {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instruccionesFotografo p {
+  font-size: 17px;
+  font-weight: 700;
+  color: #666666;
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Imagen de camara */
+
+.camaraGuiaFotografo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camaraGuiaFotografo svg {
+  width: 100px;
+  height: auto;
+  color: #737373;
+}
+
+/* Nota inferior */
+
+.notaGuiaFotografo {
+  max-width: 360px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  color: #b94040;
+  margin: 0;
+}
+
+/* Adaptacion a pantallas pequeñas */
+
+@media (max-width: 650px) {
+  .principalFotografo {
+    padding: 28px 12px;
+  }
+
+  .bienvenidaFotografo h1 {
+    font-size: 25px;
+  }
+
+  .bienvenidaFotografo p {
+    font-size: 17px;
+  }
+
+  .tarjetaGuiaFotografo {
+    padding: 24px 20px;
+  }
+
+  .instruccionesFotografo p {
+    font-size: 15px;
+  }
+
+  .camaraGuiaFotografo svg {
+    width: 80px;
+  }
+}

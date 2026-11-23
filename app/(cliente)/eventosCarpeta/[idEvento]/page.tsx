@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Boton from "@/app/(componentes)/botones/boton";
+import NavegacionCarpetas from "@/app/(componentes)/navegacion/navegacionCarpetas";
 import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
+import {
+  agregarFotoCarrito,
+  notificarCarritoActualizado,
+  obtenerCarritoEvento,
+} from "@/app/(componentes)/carrito/apiCarrito";
 
 interface EventoCliente {
   idEvento: number;
@@ -32,6 +37,16 @@ export default function PaginaInteriorEventoCliente() {
   const [fotos, setFotos] = useState<FotoCliente[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
+  const [idsFotosCarrito, setIdsFotosCarrito] = useState<Set<number>>(
+    new Set()
+  );
+  const [idFotoAgregando, setIdFotoAgregando] = useState<number | null>(null);
+  const [agregandoTodas, setAgregandoTodas] = useState(false);
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [mensajeAccionEsError, setMensajeAccionEsError] = useState(false);
+  const temporizadorMensaje = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   useEffect(() => {
     async function cargarFotosEvento() {
@@ -41,10 +56,10 @@ export default function PaginaInteriorEventoCliente() {
         setCargando(true);
         setError("");
 
-        const respuesta = await fetch(
-          `/api/eventosCliente/${idEvento}/fotos`,
-          { method: "GET" }
-        );
+        const [respuesta, resultadoCarrito] = await Promise.all([
+          fetch(`/api/eventosCliente/${idEvento}/fotos`, { method: "GET" }),
+          obtenerCarritoEvento(idEvento),
+        ]);
 
         const resultado = await respuesta.json();
 
@@ -57,6 +72,12 @@ export default function PaginaInteriorEventoCliente() {
 
         setEvento(resultado.evento);
         setFotos(resultado.fotos || []);
+
+        if (resultadoCarrito.exito) {
+          setIdsFotosCarrito(
+            new Set(resultadoCarrito.datos.fotos.map((foto) => foto.idFoto))
+          );
+        }
       } catch (err) {
         console.error("Error al cargar fotos de evento:", err);
         setError("No se pudo conectar con el servidor");
@@ -68,49 +89,105 @@ export default function PaginaInteriorEventoCliente() {
     cargarFotosEvento();
   }, [idEvento]);
 
-  function formatearFecha(fechaIso: string) {
+  useEffect(() => {
+    return () => {
+      if (temporizadorMensaje.current) {
+        clearTimeout(temporizadorMensaje.current);
+      }
+    };
+  }, []);
+
+  function mostrarMensajeCarrito(texto: string, esError = false) {
+    setMensajeAccion(texto);
+    setMensajeAccionEsError(esError);
+
+    if (temporizadorMensaje.current) {
+      clearTimeout(temporizadorMensaje.current);
+    }
+
+    temporizadorMensaje.current = setTimeout(() => {
+      setMensajeAccion("");
+    }, 3500);
+  }
+
+  async function manejarAgregarFoto(foto: FotoCliente) {
+    if (
+      idFotoAgregando !== null ||
+      agregandoTodas ||
+      idsFotosCarrito.has(foto.idFoto)
+    ) {
+      return;
+    }
+
+    setIdFotoAgregando(foto.idFoto);
+
     try {
-      const fecha = new Date(fechaIso);
-      if (isNaN(fecha.getTime())) return "xx/xx/xxxx";
-      const dia = String(fecha.getDate()).padStart(2, "0");
-      const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-      const anio = fecha.getFullYear();
-      return `${dia}/${mes}/${anio}`;
-    } catch {
-      return "xx/xx/xxxx";
+      const resultado = await agregarFotoCarrito(idEvento, foto.idFoto);
+
+      if (!resultado.exito) {
+        mostrarMensajeCarrito(resultado.mensaje, true);
+        return;
+      }
+
+      setIdsFotosCarrito(
+        new Set(resultado.datos.carrito.fotos.map((item) => item.idFoto))
+      );
+      mostrarMensajeCarrito(
+        resultado.datos.yaExistia
+          ? "La fotografía ya estaba en el carrito."
+          : "Fotografía agregada al carrito."
+      );
+    } finally {
+      setIdFotoAgregando(null);
+    }
+  }
+
+  async function manejarSeleccionarTodas() {
+    if (agregandoTodas || fotos.length === 0) {
+      return;
+    }
+
+    const fotosPendientes = fotos.filter(
+      (foto) => !idsFotosCarrito.has(foto.idFoto)
+    );
+
+    if (fotosPendientes.length === 0) {
+      mostrarMensajeCarrito("Todas las fotografías ya están en el carrito.");
+      return;
+    }
+
+    setAgregandoTodas(true);
+
+    try {
+      for (const foto of fotosPendientes) {
+        const resultado = await agregarFotoCarrito(idEvento, foto.idFoto, false);
+
+        if (!resultado.exito) {
+          notificarCarritoActualizado();
+          mostrarMensajeCarrito(resultado.mensaje, true);
+          return;
+        }
+
+        setIdsFotosCarrito(
+          new Set(resultado.datos.carrito.fotos.map((item) => item.idFoto))
+        );
+      }
+
+      notificarCarritoActualizado();
+      mostrarMensajeCarrito("Todas las fotografías fueron agregadas al carrito.");
+    } finally {
+      setAgregandoTodas(false);
     }
   }
 
   return (
     <div className="contenedorInteriorEventoCliente">
-      {/* Nivel 2: Barra de navegación / Breadcrumbs (Figma página 8) */}
-      <nav className="barraNavegacionMigas" aria-label="Ruta de navegación">
-        <div className="migasNavegacion">
-          <Link
-            href="/eventos"
-            className="migaEnlace"
-            title="Volver a Recientemente agregado"
-          >
-            Recientemente agregado
-          </Link>
-          <span className="migaSeparador" aria-hidden="true">
-            &gt;
-          </span>
-          <span className="migaActual">
-            <span className="iconoMigaCarpeta" aria-hidden="true">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-              </svg>
-            </span>
-            {evento ? evento.nombreEvento : "Cargando..."}
-          </span>
-        </div>
-      </nav>
+      <NavegacionCarpetas
+        elementos={[
+          { texto: "Recientemente agregado", ruta: "/eventos", titulo: "Volver a Recientemente agregado" },
+          { texto: evento?.nombreEvento ?? "Cargando...", icono: "carpeta" },
+        ]}
+      />
 
       {/* Estados de carga o error */}
       {cargando && (
@@ -133,60 +210,39 @@ export default function PaginaInteriorEventoCliente() {
 
       {!cargando && !error && evento && (
         <>
-          {/* Tarjeta de información del evento (Figma página 8) */}
-          <div className="tarjetaInfoEventoCliente">
-            <div className="tarjetaInfoContenido">
-              <div className="iconoCarpetaGrande" aria-hidden="true">
-                <svg
-                  width="44"
-                  height="44"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                </svg>
-              </div>
+          {fotos.length > 0 && (
+            <Boton
+              texto={
+                agregandoTodas
+                  ? "Agregando..."
+                  : idsFotosCarrito.size >= fotos.length
+                    ? "Todas seleccionadas"
+                    : "Seleccionar todas"
+              }
+              ancho={190}
+              alto={42}
+              onClick={manejarSeleccionarTodas}
+              disabled={
+                agregandoTodas ||
+                idFotoAgregando !== null ||
+                idsFotosCarrito.size >= fotos.length
+              }
+              title="Agregar todas las fotografías al carrito"
+            />
+          )}
 
-              <div className="detallesInfoEvento">
-                <p>
-                  <strong>Autor:</strong> {evento.nombreFotografo || "Fotógrafo"}
-                </p>
-                <p>
-                  <strong>Album:</strong> {evento.nombreEvento}
-                </p>
-                <p>
-                  <strong>Fecha de publicacion:</strong>{" "}
-                  {formatearFecha(evento.fechaCreacion)}
-                </p>
-                <p>
-                  <strong>Precio por fotografía:</strong> $
-                  {formatearPrecio(evento.costoFoto)}
-                </p>
-              </div>
-            </div>
-
-            {/* Icono de carrito en la cabecera (visual según Figma) */}
-            <div
-              className="botonCarritoEvento"
-              title="Carrito de compras"
-              aria-label="Carrito de compras"
+          {mensajeAccion && (
+            <p
+              className={
+                mensajeAccionEsError
+                  ? "modalMensajeError"
+                  : "modalMensajeExito"
+              }
+              role={mensajeAccionEsError ? "alert" : "status"}
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
-            </div>
-          </div>
+              {mensajeAccion}
+            </p>
+          )}
 
           {/* Cuadrícula de fotos con marca de agua (Figma página 8) */}
           {fotos.length === 0 ? (
@@ -230,28 +286,65 @@ export default function PaginaInteriorEventoCliente() {
 
                     <button
                       type="button"
-                      className="botonCarritoPill"
+                      className={`botonCarritoPill ${
+                        idsFotosCarrito.has(foto.idFoto)
+                          ? "botonCarritoPillAgregado"
+                          : ""
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Funcionalidad visual conforme a requerimientos
+                        manejarAgregarFoto(foto);
                       }}
-                      title="Agregar al carrito"
-                      aria-label="Agregar al carrito"
+                      disabled={
+                        idsFotosCarrito.has(foto.idFoto) ||
+                        idFotoAgregando !== null ||
+                        agregandoTodas
+                      }
+                      title={
+                        idsFotosCarrito.has(foto.idFoto)
+                          ? "Fotografía en el carrito"
+                          : idFotoAgregando === foto.idFoto
+                            ? "Agregando..."
+                            : "Agregar al carrito"
+                      }
+                      aria-label={
+                        idsFotosCarrito.has(foto.idFoto)
+                          ? "Fotografía en el carrito"
+                          : "Agregar al carrito"
+                      }
+                      aria-pressed={idsFotosCarrito.has(foto.idFoto)}
                     >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                      </svg>
+                      {idsFotosCarrito.has(foto.idFoto) ? (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="9" cy="21" r="1"></circle>
+                          <circle cx="20" cy="21" r="1"></circle>
+                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </article>

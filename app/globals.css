@@ -56,6 +56,93 @@ body {
   object-fit: contain;
 }
 
+/* ACCIONES DEL ENCABEZADO */
+
+.accionesEncabezado {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconoAccionEncabezado {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  color: #181913;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  text-decoration: none;
+  cursor: default;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+a.iconoAccionEncabezado,
+button.iconoAccionEncabezado {
+  cursor: pointer;
+}
+
+:is(a, button).iconoAccionEncabezado:hover {
+  background-color: rgba(24, 25, 19, 0.08);
+}
+
+.iconoAccionEncabezado:focus-visible {
+  outline: 2px solid #181913;
+  outline-offset: 2px;
+}
+
+.iconoAccionEncabezado img {
+  display: block;
+  width: 38px;
+  height: auto;
+}
+
+.badgeCarritoEncabezado {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  background-color: #e02020;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.perfilEncabezado {
+  position: relative;
+}
+
+.ventanaUsuario {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 30;
+  width: min(240px, calc(100vw - 30px));
+  padding: 14px;
+  border: 1px solid var(--colorBorde);
+  border-radius: 12px;
+  background: var(--colorContenedor);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.ventanaUsuario p {
+  margin: 5px 0 0;
+}
+
 /* CONTENEDOR PRINCIPAL */
 
 .contenedorPrincipal {
@@ -443,6 +530,26 @@ body {
   font-weight: 700;
   color: #181913;
   flex-wrap: wrap;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+
+.migasNavegacion li,
+.migaEnlace,
+.migaActual {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.iconoMigaCarpeta {
+  display: inline-flex;
+  flex: none;
+  color: #181913;
 }
 
 .migaEnlace {
@@ -466,9 +573,6 @@ body {
 .migaActual {
   color: #2e352b;
   font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* ESTADO VACÍO */

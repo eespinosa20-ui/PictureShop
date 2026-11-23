@@ -191,7 +191,8 @@
 /* ==========================================
    NIVEL 2 — INTERIOR DEL EVENTO (FIGMA PÁGINA 8)
    ========================================== */
-.contenedorInteriorEventoCliente {
+.contenedorInteriorEventoCliente,
+.contenedorCarritoCliente {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -239,18 +240,80 @@
   line-height: 1.35;
 }
 
-.botonCarritoEvento {
+.detallesInfoEvento p.totalCarritoCliente {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.resumenCarritoCliente {
+  flex-wrap: wrap;
+}
+
+.modalCliente {
+  position: fixed;
+  width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  margin: auto;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.modalCliente:not([open]) {
+  display: none;
+}
+
+.modalCliente::backdrop {
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.modalCliente .modalBotones {
+  flex-wrap: wrap;
+}
+
+.contenedorMomentos .detallesEvento {
+  overflow-wrap: anywhere;
+}
+
+.contenedorMomentos .tituloSeccionEventos {
+  font-size: 22px;
+  margin: 0 0 18px;
+}
+
+.contenedorMomentos .accionesTarjetaEvento {
+  margin-inline-start: auto;
+}
+
+.modalVerificacionMomentos {
+  max-width: 340px;
+}
+
+/* Filas informativas del carrito */
+.listaCarritoCliente {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.filaCarritoCliente {
+  padding: 14px 20px;
+  flex-wrap: wrap;
+}
+
+.accionesFilaCarrito {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 75px;
-  height: 46px;
-  background-color: #92b4d8;
-  border: 2px solid #181913;
-  border-radius: 12px;
-  color: #181913;
-  cursor: pointer;
-  flex-shrink: 0;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.etiquetaSeleccionadoCarrito {
+  background-color: #cad0cb;
+  cursor: default;
+}
+
+.etiquetaSeleccionadoCarrito:hover {
+  background-color: #cad0cb;
 }
 
 /* Cuadrícula de fotos */
@@ -345,6 +408,15 @@
 
 .botonCarritoPill:hover {
   background-color: #c4cd8c;
+}
+
+.botonCarritoPillAgregado {
+  background-color: #cad0cb;
+}
+
+.botonCarritoPill:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
 /* ==========================================
@@ -469,8 +541,206 @@
 }
 
 
-.iconoMigaCarpeta {
-  display: inline-flex;
+/* MENSAJE INFORMATIVO DEL CARRITO */
+
+.mensajeInformativoCarrito {
+  display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 4px 0;
+
   color: #181913;
+  box-sizing: border-box;
+}
+
+.mensajeInformativoCarrito svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.mensajeInformativoCarrito p {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+
+
+/* =====================================
+   PANTALLA PRINCIPAL DEL CLIENTE
+===================================== */
+
+.principalCliente {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 45px 24px;
+  box-sizing: border-box;
+}
+
+.contenidoPrincipalCliente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+/* Bienvenida */
+
+.bienvenidaCliente {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.bienvenidaCliente h1 {
+  font-size: 34px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 5px;
+}
+
+.bienvenidaCliente p {
+  font-size: 23px;
+  color: #181913;
+  margin: 0;
+}
+
+/* Recuadro de guia */
+
+.tarjetaGuiaCliente {
+  width: 100%;
+  max-width: 800px;
+  padding: 30px 40px;
+  background-color: #e4e4e4;
+  border: 1.5px solid #181913;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.tarjetaGuiaCliente h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #181913;
+  margin: 0 0 16px;
+}
+
+.instruccionesCliente {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Cada fila de la guia */
+
+.filaGuiaCliente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.flechaGuiaCliente {
+  flex-shrink: 0;
+  color: #181913;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.detalleGuiaCliente {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  background-color: #f0f0f0;
+  border-radius: 13px;
+  box-sizing: border-box;
+}
+
+.detalleGuiaCliente svg {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: #181913;
+}
+
+.detalleGuiaCliente div {
+  min-width: 0;
+}
+
+.detalleGuiaCliente strong {
+  display: block;
+  color: #666666;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.detalleGuiaCliente p {
+  margin: 3px 0 0;
+  color: #666666;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Nota inferior */
+
+.notaGuiaCliente {
+  max-width: 400px;
+  margin: 28px auto 0;
+  color: #b94040;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 650px) {
+  .principalCliente {
+    padding: 28px 12px;
+  }
+
+  .bienvenidaCliente h1 {
+    font-size: 25px;
+  }
+
+  .bienvenidaCliente p {
+    font-size: 17px;
+  }
+
+  .tarjetaGuiaCliente {
+    padding: 22px 18px;
+  }
+
+  .detalleGuiaCliente {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .detalleGuiaCliente svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .detalleGuiaCliente strong {
+    font-size: 16px;
+  }
+
+  .detalleGuiaCliente p {
+    font-size: 14px;
+  }
 }

@@ -77,6 +77,7 @@ export default function FormularioInicioSesion({
         : "/principalFotografo";
 
       router.replace(rutaPrincipal);
+      router.refresh();
 
       
     } catch (error) {
