@@ -68,8 +68,10 @@ export default function IconoCarrito() {
     }
 
     let activo = true;
+    let ultimaConsulta = 0;
 
     async function cargarResumen() {
+      const consulta = ++ultimaConsulta;
       let siguiente: ResumenIcono | null = null;
 
       if (idEventoRuta) {
@@ -89,7 +91,7 @@ export default function IconoCarrito() {
             : null;
       }
 
-      if (activo) {
+      if (activo && consulta === ultimaConsulta) {
         setResumen(siguiente);
       }
     }

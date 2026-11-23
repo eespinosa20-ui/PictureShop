@@ -43,10 +43,22 @@ export interface ResumenCarritoActual {
 
 export const EVENTO_CARRITO_ACTUALIZADO = "carritoActualizado";
 
-export function notificarCarritoActualizado() {
+export function notificarCarritoActualizado(carrito?: CarritoEvento) {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event(EVENTO_CARRITO_ACTUALIZADO));
+    window.dispatchEvent(new CustomEvent(EVENTO_CARRITO_ACTUALIZADO, { detail: carrito }));
   }
+}
+
+export function escucharSeleccionCarrito(
+  idEvento: number | string,
+  actualizar: (carrito: CarritoEvento) => void
+) {
+  function manejarActualizacion(evento: Event) {
+    const carrito: CarritoEvento | undefined = evento instanceof CustomEvent ? evento.detail : undefined;
+    if (carrito?.idEvento === Number(idEvento)) actualizar(carrito);
+  }
+  window.addEventListener(EVENTO_CARRITO_ACTUALIZADO, manejarActualizacion);
+  return () => window.removeEventListener(EVENTO_CARRITO_ACTUALIZADO, manejarActualizacion);
 }
 
 export type ResultadoApi<T> =
@@ -158,18 +170,43 @@ export async function agregarFotoCarrito(
 
 export async function quitarFotoCarrito(
   idEvento: number | string,
-  idFoto: number
+  idFoto: number,
+  notificar = true
 ): Promise<ResultadoApi<{ mensaje: string; carrito: CarritoEvento }>> {
   const resultado = await solicitar<{
     mensaje: string;
     carrito: CarritoEvento;
   }>(`/api/carrito/${idEvento}/fotos/${idFoto}`, { method: "DELETE" });
 
-  if (resultado.exito) {
+  if (resultado.exito && notificar) {
     notificarCarritoActualizado();
   }
 
   return resultado;
+}
+
+export async function actualizarFotosCarrito(
+  idEvento: number | string,
+  idsFotos: readonly number[],
+  seleccionar: boolean
+): Promise<string | null> {
+  let carrito: CarritoEvento | null = null;
+  const actualizar = seleccionar ? agregarFotoCarrito : quitarFotoCarrito;
+
+  try {
+    for (const idFoto of idsFotos) {
+      const resultado = await actualizar(idEvento, idFoto, false);
+      if (!resultado.exito) {
+        const actualizado = await obtenerCarritoEvento(idEvento);
+        if (actualizado.exito) carrito = actualizado.datos;
+        return resultado.mensaje;
+      }
+      carrito = resultado.datos.carrito;
+    }
+    return null;
+  } finally {
+    if (idsFotos.length) notificarCarritoActualizado(carrito ?? undefined);
+  }
 }
 
 interface RespuestaConfirmarPedido {

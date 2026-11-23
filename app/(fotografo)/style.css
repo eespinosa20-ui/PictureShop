@@ -36,27 +36,13 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 600px;
+  min-height: 0;
+  min-width: 0;
   position: relative;
 }
 
-/* BUSCADOR */
 
 
-/* CONTENEDOR EXTERIOR */
-
-.contenedorBuscador {
-  position: relative;
-  width: 100%;
-  max-width: 680px;
-
-  padding: 10px 12px;
-  margin-bottom: 25px;
-
-  background-color: #AABAAE;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
 
 /* CAMPO INTERIOR */
 
@@ -106,15 +92,6 @@
   font-weight: 700;
   color: #181913;
   margin: 0 0 18px 0;
-}
-
-/* LISTA DE EVENTOS */
-.listaEventos {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  padding-bottom: 90px; /* Espacio para el botón flotante */
 }
 
 /* TARJETA EVENTO FOTÓGRAFO */
@@ -681,6 +658,27 @@
   gap: 18px;
 }
 
+.barraFotosEvento {
+  margin-bottom: 0;
+}
+
+.modalGestionFotos {
+  position: fixed;
+  width: min(100% - 32px, 440px);
+  max-height: calc(100% - 32px);
+  margin: auto;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.modalGestionFotos::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.modalGestionFotos .modalBotones {
+  flex-wrap: wrap;
+}
+
 /* NAVEGACIÓN Y BREADCRUMBS */
 .contenedorInteriorEvento .barraNavegacionMigas {
   margin-bottom: 0;
@@ -797,6 +795,14 @@
 .cuerpoTablaDrive {
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 650px) {
+  .tablaDriveContenedor .columnaFecha {
+    width: min(36%, 140px);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
 
 .filaFotoDrive {

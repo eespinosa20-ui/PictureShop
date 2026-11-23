@@ -128,144 +128,147 @@ export default function PaginaEventosCliente() {
   }
 
   return (
-    <div className="contenedorEventosCliente">
+    <div className="contenedorEventosCliente paginaConDesplazamiento">
       {/* Buscador de eventos (Figma) */}
-      <div className="contenedorBuscador">
-        <input
-          type="text"
-          placeholder="Buscar nombre de evento..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="inputBuscador"
-          aria-label="Buscar nombre de evento"
-        />
-        <span className="iconoBuscador" aria-hidden="true">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className="barraAccionesEventos">
+        <div className="contenedorBuscador">
+          <input
+            type="text"
+            placeholder="Buscar nombre de evento..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="inputBuscador"
+            aria-label="Buscar nombre de evento"
+          />
+          <span className="iconoBuscador" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+        </div>
+                  {/* Botón flotante "+ clave de acceso" (Figma) */}
+        <div className="contenedorBotonAgregar">
+          <button
+            type="button"
+            className="botonAgregarEvento"
+            onClick={() => {
+              setMensajeErrorModal("");
+              setMensajeExitoModal("");
+              setModalIdAbierto(true);
+            }}
+            title="Agregar evento privado mediante clave de acceso"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </span>
+            <span className="iconoMas">+</span>
+            <span className="textoBotonAgregar">
+              <span>Entrar</span>
+              <span>a evento</span>
+            </span>
+          </button>
+        </div>
       </div>
+
 
       {/* Título de la sección (Figma) */}
-      <h2 className="tituloSeccionEventos">Recientemente agregado</h2>
+      <h2 className="tituloSeccionEventos">Tus eventos</h2>
 
-      {/* Estados de carga o error */}
-      {cargando && (
-        <div className="estadoVacio">
-          <p>Cargando eventos autorizados...</p>
-        </div>
-      )}
+      <div className="areaDesplazableArchivos" role="region" aria-label="Eventos del cliente" tabIndex={0}>
+        {/* Estados de carga o error */}
+        {cargando && (
+          <div className="estadoVacio">
+            <p>Cargando eventos autorizados...</p>
+          </div>
+        )}
 
-      {errorCarga && (
-        <div className="estadoVacio">
-          <p className="modalMensajeError">{errorCarga}</p>
-          <Boton
-            texto="Reintentar"
-            ancho={140}
-            alto={40}
-            onClick={() => cargarEventos()}
-          />
-        </div>
-      )}
+        {errorCarga && (
+          <div className="estadoVacio">
+            <p className="modalMensajeError">{errorCarga}</p>
+            <Boton
+              texto="Reintentar"
+              ancho={140}
+              alto={40}
+              onClick={() => cargarEventos()}
+            />
+          </div>
+        )}
 
-      {/* Listado de eventos autorizados (Nivel 1) */}
-      {!cargando && !errorCarga && (
-        <>
-          {eventosFiltrados.length === 0 ? (
-            <div className="estadoVacio">
-              <p>
-                {busqueda
-                  ? "No se encontraron eventos con ese nombre."
-                  : "Aún no tienes eventos agregados. Ingresa la clave de acceso proporcionada por tu fotógrafo."}
-              </p>
-              {!busqueda && (
-                <Boton
-                  texto="Entrar a evento"
-                  ancho={220}
-                  alto={44}
-                  onClick={() => setModalIdAbierto(true)}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="listaEventos">
-              {eventosFiltrados.map((evento) => (
-                <article key={evento.idEvento} className="tarjetaEvento">
-                  <div className="tarjetaEventoContenido">
-                    {/* Icono de carpeta (Figma) */}
-                    <div className="iconoCarpetaEvento" aria-hidden="true">
-                      <svg
-                        width="44"
-                        height="44"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
+        {/* Listado de eventos autorizados (Nivel 1) */}
+        {!cargando && !errorCarga && (
+          <>
+            {eventosFiltrados.length === 0 ? (
+              <div className="estadoVacio">
+                <p>
+                  {busqueda
+                    ? "No se encontraron eventos con ese nombre."
+                    : "Aún no tienes eventos agregados. Ingresa la clave de acceso proporcionada por tu fotógrafo."}
+                </p>
+                {!busqueda && (
+                  <Boton
+                    texto="Entrar a evento"
+                    ancho={220}
+                    alto={44}
+                    onClick={() => setModalIdAbierto(true)}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="listaEventos">
+                {eventosFiltrados.map((evento) => (
+                  <article key={evento.idEvento} className="tarjetaEvento">
+                    <div className="tarjetaEventoContenido">
+                      {/* Icono de carpeta (Figma) */}
+                      <div className="iconoCarpetaEvento" aria-hidden="true">
+                        <svg
+                          width="44"
+                          height="44"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                        </svg>
+                      </div>
+
+                      {/* Información del evento (Figma) */}
+                      <div className="detallesEvento">
+                        <p>
+                          Fecha de publicacion: {formatearFecha(evento.fechaCreacion)}
+                        </p>
+                        <p>
+                          Autor: {evento.nombreFotografo || "Fotógrafo"}
+                        </p>
+                        <p className="nombreAlbum">
+                          Album: {evento.nombreEvento}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Botón Ver para entrar al Nivel 2 */}
+                    <div className="accionesTarjetaEvento">
+                      <Link
+                        href={`/eventosCarpeta/${evento.idEvento}`}
+                        className="botonPill"
+                        title={`Ver fotos de ${evento.nombreEvento}`}
                       >
-                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                      </svg>
+                        Ver
+                      </Link>
                     </div>
-
-                    {/* Información del evento (Figma) */}
-                    <div className="detallesEvento">
-                      <p>
-                        Fecha de publicacion: {formatearFecha(evento.fechaCreacion)}
-                      </p>
-                      <p>
-                        Autor: {evento.nombreFotografo || "Fotógrafo"}
-                      </p>
-                      <p className="nombreAlbum">
-                        Album: {evento.nombreEvento}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Botón Ver para entrar al Nivel 2 */}
-                  <div className="accionesTarjetaEvento">
-                    <Link
-                      href={`/eventosCarpeta/${evento.idEvento}`}
-                      className="botonPill"
-                      title={`Ver fotos de ${evento.nombreEvento}`}
-                    >
-                      Ver
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Botón flotante "+ clave de acceso" (Figma) */}
-      <div className="contenedorBotonAgregar">
-        <button
-          type="button"
-          className="botonAgregarEvento"
-          onClick={() => {
-            setMensajeErrorModal("");
-            setMensajeExitoModal("");
-            setModalIdAbierto(true);
-          }}
-          title="Agregar evento privado mediante clave de acceso"
-        >
-          <span className="iconoMas">+</span>
-          <span className="textoBotonAgregar">
-            <span>Entrar</span>
-            <span>a evento</span>
-          </span>
-        </button>
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      {/* MODAL: INGRESAR CLAVE DE ACCESO AL EVENTO (Figma Componentes página 2) */}
       {modalIdAbierto && (
         <div className="modalFondo" onClick={cerrarModal}>
           <div

@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Boton from "@/app/(componentes)/botones/boton";
 import NavegacionCarpetas from "@/app/(componentes)/navegacion/navegacionCarpetas";
-import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
 import {
-  agregarFotoCarrito,
+  actualizarFotosCarrito,
+  escucharSeleccionCarrito,
   obtenerCarritoEvento,
 } from "@/app/(componentes)/carrito/apiCarrito";
 
@@ -40,8 +40,11 @@ export default function PaginaDetalleFotoCliente() {
   const [idFotoSiguiente, setIdFotoSiguiente] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [enCarrito, setEnCarrito] = useState(false);
-  const [agregando, setAgregando] = useState(false);
+  const [seleccion, setSeleccion] = useState<{ idEvento: number; fotos: Set<number> } | null>(null);
+  const [procesando, setProcesando] = useState(false);
+  const operacionEnCurso = useRef(false);
+  const carritoDisponible = Boolean(seleccion && evento && seleccion.idEvento === evento.idEvento);
+  const enCarrito = carritoDisponible && Boolean(seleccion?.fotos.has(Number(idFoto)));
   const [mensajeAccion, setMensajeAccion] = useState("");
   const [mensajeAccionEsError, setMensajeAccionEsError] = useState(false);
   const temporizadorMensaje = useRef<ReturnType<typeof setTimeout> | null>(
@@ -49,6 +52,50 @@ export default function PaginaDetalleFotoCliente() {
   );
 
   useEffect(() => {
+    function manejarTeclado(evento: KeyboardEvent) {
+      const elemento = evento.target as HTMLElement;
+
+      // Evitar navegación mientras se escribe
+      if (
+        elemento.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(elemento.tagName)
+      ) {
+        return;
+      }
+
+      if (evento.key === "ArrowLeft" && idFotoAnterior !== null) {
+        evento.preventDefault();
+
+        router.push(
+          `/eventosFoto/${idFotoAnterior}?idEvento=${idEventoParam}`
+        );
+      }
+
+      if (evento.key === "ArrowRight" && idFotoSiguiente !== null) {
+        evento.preventDefault();
+
+        router.push(
+          `/eventosFoto/${idFotoSiguiente}?idEvento=${idEventoParam}`
+        );
+      }
+    }
+
+    window.addEventListener("keydown", manejarTeclado);
+
+    return () => {
+      window.removeEventListener("keydown", manejarTeclado);
+    };
+  }, [idFotoAnterior, idFotoSiguiente, idEventoParam, router]);
+
+  useEffect(() => {
+    let activa = true;
+    let seleccionActualizada = false;
+    const idEventoConsulta = idEventoParam || "1";
+    const dejarDeEscuchar = escucharSeleccionCarrito(idEventoConsulta, (carrito) => {
+      seleccionActualizada = true;
+      setSeleccion({ idEvento: carrito.idEvento, fotos: new Set(carrito.fotos.map((item) => item.idFoto)) });
+    });
+
     async function cargarDetalleFoto() {
       if (!idFoto) return;
 
@@ -57,13 +104,13 @@ export default function PaginaDetalleFotoCliente() {
         setError("");
 
         // Si tenemos idEvento lo pasamos en la ruta, si no, primero cargamos con el idFoto
-        const idEventoConsulta = idEventoParam || "1";
         const respuesta = await fetch(
           `/api/eventosCliente/${idEventoConsulta}/fotos/${idFoto}`,
           { method: "GET" }
         );
 
         const resultado = await respuesta.json();
+        if (!activa) return;
 
         if (!respuesta.ok) {
           setError(
@@ -81,24 +128,30 @@ export default function PaginaDetalleFotoCliente() {
           resultado.evento.idEvento
         );
 
+        if (!activa || seleccionActualizada) return;
         if (resultadoCarrito.exito) {
-          setEnCarrito(
-            resultadoCarrito.datos.fotos.some(
-              (item) => item.idFoto === Number(idFoto)
-            )
-          );
+          setSeleccion({
+            idEvento: resultado.evento.idEvento,
+            fotos: new Set(resultadoCarrito.datos.fotos.map((item) => item.idFoto)),
+          });
         } else {
-          setEnCarrito(false);
+          setSeleccion(null);
+          setMensajeAccion(resultadoCarrito.mensaje);
+          setMensajeAccionEsError(true);
         }
       } catch (err) {
         console.error("Error al cargar detalle de foto:", err);
-        setError("No se pudo conectar con el servidor");
+        if (activa) setError("No se pudo conectar con el servidor");
       } finally {
-        setCargando(false);
+        if (activa) setCargando(false);
       }
     }
 
     cargarDetalleFoto();
+    return () => {
+      activa = false;
+      dejarDeEscuchar();
+    };
   }, [idFoto, idEventoParam]);
 
   useEffect(() => {
@@ -122,32 +175,25 @@ export default function PaginaDetalleFotoCliente() {
     }, 3500);
   }
 
-  async function manejarAgregarFoto() {
-    if (!evento || !foto || agregando || enCarrito) {
+  async function alternarFoto() {
+    if (!evento || !foto || foto.idFoto !== Number(idFoto) || !carritoDisponible || operacionEnCurso.current) {
       return;
     }
 
-    setAgregando(true);
+    operacionEnCurso.current = true;
+    setProcesando(true);
 
     try {
-      const resultado = await agregarFotoCarrito(
-        evento.idEvento,
-        foto.idFoto
-      );
-
-      if (!resultado.exito) {
-        mostrarMensajeCarrito(resultado.mensaje, true);
+      const errorOperacion = await actualizarFotosCarrito(evento.idEvento, [foto.idFoto], !enCarrito);
+      if (errorOperacion !== null) {
+        mostrarMensajeCarrito(errorOperacion, true);
         return;
       }
 
-      setEnCarrito(true);
-      mostrarMensajeCarrito(
-        resultado.datos.yaExistia
-          ? "La fotografía ya estaba en el carrito."
-          : "Fotografía agregada al carrito."
-      );
+      mostrarMensajeCarrito(enCarrito ? "Fotografía quitada del carrito." : "Fotografía agregada al carrito.");
     } finally {
-      setAgregando(false);
+      operacionEnCurso.current = false;
+      setProcesando(false);
     }
   }
 
@@ -155,7 +201,7 @@ export default function PaginaDetalleFotoCliente() {
     <div className="contenedorDetalleFoto">
       <NavegacionCarpetas
         elementos={[
-          { texto: "Recientemente agregado", ruta: "/eventos", titulo: "Volver a Recientemente agregado" },
+          { texto: "Tus eventos", ruta: "/eventos", titulo: "Volver a Tus eventos" },
           evento
             ? {
                 texto: evento.nombreEvento,
@@ -201,12 +247,7 @@ export default function PaginaDetalleFotoCliente() {
             </div>
 
             <div className="pieFotoIndividual">
-              <div className="datosFotoIndividual">
-                <p className="nombreFotoGrande">ID: {foto.nombreFoto}</p>
-                <p className="precioFotoGrande">
-                  Precio: ${formatearPrecio(evento.costoFoto)}
-                </p>
-              </div>
+
 
               {/* Botón de carrito según Figma página 9 */}
               <button
@@ -215,20 +256,10 @@ export default function PaginaDetalleFotoCliente() {
                   enCarrito ? "botonCarritoPillAgregado" : ""
                 }`}
                 style={{ padding: "8px 24px" }}
-                onClick={manejarAgregarFoto}
-                disabled={enCarrito || agregando}
-                title={
-                  enCarrito
-                    ? "Fotografía en el carrito"
-                    : agregando
-                      ? "Agregando..."
-                      : "Agregar al carrito"
-                }
-                aria-label={
-                  enCarrito
-                    ? "Fotografía en el carrito"
-                    : "Agregar al carrito"
-                }
+                onClick={alternarFoto}
+                disabled={!carritoDisponible || procesando}
+                title={enCarrito ? "Quitar del carrito" : "Agregar al carrito"}
+                aria-label={enCarrito ? "Quitar del carrito" : "Agregar al carrito"}
                 aria-pressed={enCarrito}
               >
                 {enCarrito ? (

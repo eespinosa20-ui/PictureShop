@@ -154,13 +154,13 @@ export default function PaginaMomentos() {
   });
 
   return (
-    <div className="contenedorEventosCliente contenedorMomentos">
+    <div className="contenedorEventosCliente contenedorMomentos paginaConDesplazamiento">
       <div className="contenedorBuscador" role="search">
         <input
           type="search"
           className="inputBuscador"
-          placeholder="Buscar por pedido, fecha o evento..."
-          aria-label="Buscar por pedido, fecha o evento"
+          placeholder="Buscar por pedido o evento..."
+          aria-label="Buscar por pedido o evento"
           value={busqueda}
           onChange={(evento) => setBusqueda(evento.target.value)}
         />
@@ -174,63 +174,65 @@ export default function PaginaMomentos() {
       </div>
 
       <h1 className="tituloSeccionEventos">Revive la emocion</h1>
-      {error ? (
-        <p className="modalMensajeError" role="alert">{error}</p>
-      ) : compras === null ? (
-        <p className="estadoVacio" role="status">Cargando tus fotografías…</p>
-      ) : compras.length === 0 && !termino ? (
-        <p className="estadoVacio">Tus fotografías aparecerán aquí cuando registres un pedido.</p>
-      ) : pedidos.length === 0 ? (
-        <p className="estadoVacio">No se encontraron pedidos.</p>
-      ) : (
-        <div className="listaEventos">
-          {pedidos.map(([pedido, { idEvento, nombreEvento, fechaPedido, estado, idsFotos }]) => {
-            const evento = eventos.get(idEvento);
+      <div className="areaDesplazableArchivos" role="region" aria-label="Pedidos de Momentos" tabIndex={0}>
+        {error ? (
+          <p className="modalMensajeError" role="alert">{error}</p>
+        ) : compras === null ? (
+          <p className="estadoVacio" role="status">Cargando tus fotografías…</p>
+        ) : compras.length === 0 && !termino ? (
+          <p className="estadoVacio">Tus fotografías aparecerán aquí cuando registres un pedido.</p>
+        ) : pedidos.length === 0 ? (
+          <p className="estadoVacio">No se encontraron pedidos.</p>
+        ) : (
+          <div className="listaEventos">
+            {pedidos.map(([pedido, { idEvento, nombreEvento, fechaPedido, estado, idsFotos }]) => {
+              const evento = eventos.get(idEvento);
 
-            return (
-              <article key={pedido} className="tarjetaEvento resumenCarritoCliente"
-                aria-label={`${nombreEvento}, pedido ${pedido}`}>
-                <div className="tarjetaEventoContenido">
-                  <div className="iconoCarpetaEvento" aria-hidden="true">
-                    <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                    </svg>
-                  </div>
-                  <div className="detallesEvento">
-                    <p><strong>Pedido #{pedido}</strong></p>
-                    <p>Fecha del pedido: {fechaPedido}</p>
-                    <p>Autor: {evento?.nombreFotografo || "Fotógrafo"}</p>
-                    <p className="nombreAlbum">Álbum: {nombreEvento}</p>
-                    <p>Fotografías adquiridas: {idsFotos.size}</p>
-                    <p>{etiquetasPedido[estado]}</p>
-                  </div>
-                </div>
-                <div className="accionesTarjetaEvento">
-                  {estado === "pendiente" && (
-                    <button type="button" className="botonPill"
-                      aria-label={`Clave de verificación del pedido ${pedido}`}
-                      aria-haspopup="dialog" onClick={() => abrirVerificacion(pedido)}>
-                      Clave de verificación
-                    </button>
-                  )}
-                  {estado === "desbloqueado" && (
-                    <a className="botonPill"
-                      aria-label={`Descargar fotografías del pedido ${pedido}`}
-                      href={`/api/momentos/${pedido}/descargar`}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                        strokeLinejoin="round" aria-hidden="true">
-                        <path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" />
+              return (
+                <article key={pedido} className="tarjetaEvento resumenCarritoCliente"
+                  aria-label={`${nombreEvento}, pedido ${pedido}`}>
+                  <div className="tarjetaEventoContenido">
+                    <div className="iconoCarpetaEvento" aria-hidden="true">
+                      <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
                       </svg>
-                      &nbsp;Descargar
-                    </a>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                    </div>
+                    <div className="detallesEvento">
+                      <p><strong>Pedido #{pedido}</strong></p>
+                      <p>Fecha del pedido: {fechaPedido}</p>
+                      <p>Autor: {evento?.nombreFotografo || "Fotógrafo"}</p>
+                      <p className="nombreAlbum">Álbum: {nombreEvento}</p>
+                      <p>Fotografías adquiridas: {idsFotos.size}</p>
+                      <p>{etiquetasPedido[estado]}</p>
+                    </div>
+                  </div>
+                  <div className="accionesTarjetaEvento">
+                    {estado === "pendiente" && (
+                      <button type="button" className="botonPill"
+                        aria-label={`Clave de verificación del pedido ${pedido}`}
+                        aria-haspopup="dialog" onClick={() => abrirVerificacion(pedido)}>
+                        Clave de verificación
+                      </button>
+                    )}
+                    {estado === "desbloqueado" && (
+                      <a className="botonPill"
+                        aria-label={`Descargar fotografías del pedido ${pedido}`}
+                        href={`/api/momentos/${pedido}/descargar`}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                          strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" />
+                        </svg>
+                        &nbsp;Descargar
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <dialog
         ref={dialogo}

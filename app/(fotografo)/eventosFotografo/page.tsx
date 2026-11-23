@@ -7,6 +7,7 @@ import {
   useRef,
   type FormEvent,
   type ChangeEvent,
+  type CSSProperties,
 } from "react";
 import Link from "next/link";
 import Boton from "@/app/(componentes)/botones/boton";
@@ -30,6 +31,10 @@ export default function PaginaEventosFotografo() {
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState("");
   const [busqueda, setBusqueda] = useState("");
+
+  const [eventoEditarPrecio, setEventoEditarPrecio] =
+  useState<Evento | null>(null);
+
 
   // Estado del modal de creación
   const [modalCrearAbierto, setModalCrearAbierto] = useState(false);
@@ -57,7 +62,36 @@ export default function PaginaEventosFotografo() {
   const [mensajeCopiado, setMensajeCopiado] = useState("");
 
   // Estado del menu contextual y de la administracion del evento
-  const [menuEventoAbierto, setMenuEventoAbierto] = useState<number | null>(null);
+  const [menuEventoAbierto, setMenuEventoAbierto] = useState<{
+    idEvento: number;
+    posicion: CSSProperties;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!menuEventoAbierto) return;
+    const cerrar = () => setMenuEventoAbierto(null);
+    window.addEventListener("resize", cerrar);
+    window.addEventListener("scroll", cerrar);
+    return () => {
+      window.removeEventListener("resize", cerrar);
+      window.removeEventListener("scroll", cerrar);
+    };
+  }, [menuEventoAbierto]);
+
+  function alternarMenuEvento(idEvento: number, boton: HTMLButtonElement) {
+    const { top, right, bottom } = boton.getBoundingClientRect();
+    const espacioAbajo = window.innerHeight - bottom;
+    const abrirArriba = espacioAbajo < 110 && top > espacioAbajo;
+    setMenuEventoAbierto((anterior) => anterior?.idEvento === idEvento ? null : {
+      idEvento,
+      posicion: {
+        right: Math.max(8, Math.min(window.innerWidth - right, window.innerWidth - 188)),
+        top: abrirArriba ? "auto" : bottom + 6,
+        bottom: abrirArriba ? window.innerHeight - top + 6 : "auto",
+        maxHeight: Math.max(0, (abrirArriba ? top : espacioAbajo) - 14),
+      },
+    });
+  }
   const [eventoRenombrar, setEventoRenombrar] = useState<Evento | null>(null);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [errorRenombrar, setErrorRenombrar] = useState("");
@@ -66,6 +100,12 @@ export default function PaginaEventosFotografo() {
   const [errorEliminar, setErrorEliminar] = useState("");
   const [eliminandoEvento, setEliminandoEvento] = useState(false);
   const [mensajeAccion, setMensajeAccion] = useState("");
+  
+  const [nuevoPrecio, setNuevoPrecio] = useState("");
+
+  const [errorPrecio, setErrorPrecio] = useState("");
+
+  const [guardandoPrecio, setGuardandoPrecio] = useState(false);
 
   // Cargar eventos del fotógrafo autenticado
   async function cargarEventos() {
@@ -310,6 +350,20 @@ export default function PaginaEventosFotografo() {
     setMensajeAccion(mensaje);
     window.setTimeout(() => setMensajeAccion(""), 4000);
   }
+  function abrirEditarPrecio(evento: Evento) {
+    setMenuEventoAbierto(null);
+    setErrorPrecio("");
+    setNuevoPrecio(formatearPrecio(evento.costoFoto));
+    setEventoEditarPrecio(evento);
+  }
+
+  function cerrarEditarPrecio() {
+    if (guardandoPrecio) return;
+
+    setEventoEditarPrecio(null);
+    setNuevoPrecio("");
+    setErrorPrecio("");
+  }
 
   function abrirRenombrar(evento: Evento) {
     setMenuEventoAbierto(null);
@@ -325,6 +379,7 @@ export default function PaginaEventosFotografo() {
     setErrorRenombrar("");
     setNuevoNombre("");
   }
+
 
   async function manejarRenombrar(eventoSubmit: FormEvent<HTMLFormElement>) {
     eventoSubmit.preventDefault();
@@ -450,212 +505,281 @@ export default function PaginaEventosFotografo() {
     }
   }
 
+  async function manejarEditarPrecio(
+    eventoSubmit: FormEvent<HTMLFormElement>
+  ) {
+    eventoSubmit.preventDefault();
+
+    if (!eventoEditarPrecio) return;
+
+    const validacion = validarCostoFoto(nuevoPrecio);
+
+    if (!validacion.valido) {
+      setErrorPrecio(validacion.mensaje);
+      return;
+    }
+
+    setGuardandoPrecio(true);
+    setErrorPrecio("");
+
+    try {
+      const respuesta = await fetch(
+        `/api/eventosFotografo/${eventoEditarPrecio.idEvento}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            costoFoto: validacion.valor,
+          }),
+        }
+      );
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        setErrorPrecio(
+          resultado.mensaje || "No se pudo actualizar el precio"
+        );
+        return;
+      }
+
+      setEventos((anteriores) =>
+        anteriores.map((evento) =>
+          evento.idEvento === eventoEditarPrecio.idEvento
+            ? { ...evento, costoFoto: validacion.valor }
+            : evento
+        )
+      );
+
+      setEventoEditarPrecio(null);
+      setNuevoPrecio("");
+
+      mostrarMensajeAccion(
+        "Precio por fotografía actualizado correctamente."
+      );
+    } catch (error) {
+      console.error("Error al actualizar precio:", error);
+      setErrorPrecio("No se pudo conectar con el servidor");
+    } finally {
+      setGuardandoPrecio(false);
+    }
+  }
+
   return (
-    <div className="contenedorEventosFotografo">
+    <div className="contenedorEventosFotografo paginaConDesplazamiento">
       {/* Buscador de eventos (Figma) */}
-      <div className="contenedorBuscador">
-        <input
-          type="text"
-          placeholder="Buscar nombre de evento..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="inputBuscador"
-          aria-label="Buscar nombre de evento"
-        />
-        <span className="iconoBuscador" aria-hidden="true">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className="barraAccionesEventos">
+        <div className="contenedorBuscador">
+          <input
+            type="text"
+            placeholder="Buscar nombre de evento..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="inputBuscador"
+            aria-label="Buscar nombre de evento"
+          />
+          <span className="iconoBuscador" aria-hidden="true">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+        </div>
+        {/* Botón flotante "+ Agregar evento" (Figma) */}
+        <div className="contenedorBotonAgregar">
+          <button
+            type="button"
+            className="botonAgregarEvento"
+            onClick={() => {
+              setErrorCreacion("");
+              setEventoRecienCreado(null);
+              setModalCrearAbierto(true);
+            }}
+            title="Agregar nuevo evento"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </span>
+            <span className="iconoMas">+</span>
+            <span className="textoBotonAgregar">
+              <span>Agregar</span>
+              <span>evento</span>
+            </span>
+          </button>
+        </div>
       </div>
+
 
       {/* Título de la sección */}
       <h2 className="tituloSeccionEventos">Recientemente agregado</h2>
 
-      {mensajeAccion && (
-        <p
-          className="modalMensajeExito"
-          role="status"
-          style={{ marginBottom: "14px" }}
-        >
-          {mensajeAccion}
-        </p>
-      )}
+      <div className="areaDesplazableArchivos" role="region" aria-label="Eventos del fotógrafo" tabIndex={0} onScroll={() => setMenuEventoAbierto(null)}>
+        {mensajeAccion && (
+          <p
+            className="modalMensajeExito"
+            role="status"
+            style={{ marginBottom: "14px" }}
+          >
+            {mensajeAccion}
+          </p>
+        )}
 
-      {/* Estado de carga o error */}
-      {cargando && (
-        <div className="estadoVacio">
-          <p>Cargando eventos...</p>
-        </div>
-      )}
+        {/* Estado de carga o error */}
+        {cargando && (
+          <div className="estadoVacio">
+            <p>Cargando eventos...</p>
+          </div>
+        )}
 
-      {errorCarga && (
-        <div className="estadoVacio">
-          <p className="modalMensajeError">{errorCarga}</p>
-          <Boton
-            texto="Reintentar"
-            ancho={140}
-            alto={40}
-            onClick={() => cargarEventos()}
-          />
-        </div>
-      )}
+        {errorCarga && (
+          <div className="estadoVacio">
+            <p className="modalMensajeError">{errorCarga}</p>
+            <Boton
+              texto="Reintentar"
+              ancho={140}
+              alto={40}
+              onClick={() => cargarEventos()}
+            />
+          </div>
+        )}
 
-      {/* Lista de eventos del fotógrafo */}
-      {!cargando && !errorCarga && (
-        <>
-          {eventosFiltrados.length === 0 ? (
-            <div className="estadoVacio">
-              <p>
-                {busqueda
-                  ? "No se encontraron eventos con ese nombre."
-                  : "Aún no has creado ningún evento."}
-              </p>
-              {!busqueda && (
-                <Boton
-                  texto="Crear primer evento"
-                  ancho={200}
-                  alto={44}
-                  onClick={() => setModalCrearAbierto(true)}
-                />
-              )}
-            </div>
-          ) : (
-            <div className="listaEventos">
-              {eventosFiltrados.map((evento) => (
-                <article
-                  key={evento.idEvento}
-                  className="tarjetaEvento tarjetaEventoConOpciones"
-                >
-                  <div className="tarjetaEventoContenido">
-                    {/* Icono de carpeta (Figma) */}
-                    <div className="iconoCarpetaEvento" aria-hidden="true">
-                      <svg
-                        width="44"
-                        height="44"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
+        {/* Lista de eventos del fotógrafo */}
+        {!cargando && !errorCarga && (
+          <>
+            {eventosFiltrados.length === 0 ? (
+              <div className="estadoVacio">
+                <p>
+                  {busqueda
+                    ? "No se encontraron eventos con ese nombre."
+                    : "Aún no has creado ningún evento."}
+                </p>
+                {!busqueda && (
+                  <Boton
+                    texto="Crear primer evento"
+                    ancho={200}
+                    alto={44}
+                    onClick={() => setModalCrearAbierto(true)}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="listaEventos">
+                {eventosFiltrados.map((evento) => (
+                  <article
+                    key={evento.idEvento}
+                    className="tarjetaEvento tarjetaEventoConOpciones"
+                  >
+                    <div className="tarjetaEventoContenido">
+                      {/* Icono de carpeta (Figma) */}
+                      <div className="iconoCarpetaEvento" aria-hidden="true">
+                        <svg
+                          width="44"
+                          height="44"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                        </svg>
+                      </div>
+
+                      {/* Datos del evento */}
+                      <div className="detallesEvento">
+                        <p>
+                          Fecha de publicacion: {formatearFecha(evento.fechaCreacion)}
+                        </p>
+                        <p className="nombreAlbum">
+                          Album: {evento.nombreEvento}
+                        </p>
+                        <p className="costoAlbum">
+                          Costo: ${formatearPrecio(evento.costoFoto)} por foto
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div className="accionesTarjetaEvento">
+                      <button
+                        type="button"
+                        className="botonPill"
+                        onClick={() => {
+                          setMensajeCopiado("");
+                          setModalClavesEvento(evento);
+                        }}
+                        title="Ver clave de acceso y verificación"
                       >
-                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                      </svg>
-                    </div>
+                        Clave
+                      </button>
 
-                    {/* Datos del evento */}
-                    <div className="detallesEvento">
-                      <p>
-                        Fecha de publicacion: {formatearFecha(evento.fechaCreacion)}
-                      </p>
-                      <p className="nombreAlbum">
-                        Album: {evento.nombreEvento}
-                      </p>
-                      <p className="costoAlbum">
-                        Costo: ${formatearPrecio(evento.costoFoto)} por foto
-                      </p>
-                    </div>
-                  </div>
+                      <Link
+                        href={`/eventosFotografo/${evento.idEvento}`}
+                        className="botonPill"
+                        title="Ver contenido del evento"
+                      >
+                        Ver
+                      </Link>
+                      <button
+                        type="button"
+                        className="botonPill"
+                        aria-label={`Opciones de ${evento.nombreEvento}`}
+                        aria-haspopup="menu"
+                        aria-expanded={menuEventoAbierto?.idEvento === evento.idEvento}
+                        onClick={(clic) => alternarMenuEvento(evento.idEvento, clic.currentTarget)}
+                      >
+                        ···
+                      </button>
 
-                  {/* Botones de acción */}
-                  <div className="accionesTarjetaEvento">
-                    <button
-                      type="button"
-                      className="botonPill"
-                      onClick={() => {
-                        setMensajeCopiado("");
-                        setModalClavesEvento(evento);
-                      }}
-                      title="Ver clave de acceso y verificación"
-                    >
-                      Clave
-                    </button>
-
-                    <Link
-                      href={`/eventosFotografo/${evento.idEvento}`}
-                      className="botonPill"
-                      title="Ver contenido del evento"
-                    >
-                      Ver
-                    </Link>
-                    <button
-                      type="button"
-                      className="botonPill"
-                      aria-label={`Opciones de ${evento.nombreEvento}`}
-                      aria-haspopup="menu"
-                      aria-expanded={menuEventoAbierto === evento.idEvento}
-                      onClick={() =>
-                        setMenuEventoAbierto((anterior) =>
-                          anterior === evento.idEvento ? null : evento.idEvento
-                        )
-                      }
-                    >
-                      ···
-                    </button>
-
-                    {menuEventoAbierto === evento.idEvento && (
-                      <>
-                        <button
-                          type="button"
-                          className="capaCierreMenu"
-                          aria-label="Cerrar opciones del evento"
-                          onClick={() => setMenuEventoAbierto(null)}
-                        />
-
-                        <div className="menuOpcionesEvento" role="menu">
+                      {menuEventoAbierto?.idEvento === evento.idEvento && (
+                        <>
                           <button
                             type="button"
-                            role="menuitem"
-                            className="opcionMenuEvento"
-                            onClick={() => abrirRenombrar(evento)}
-                          >
-                            Renombrar evento
-                          </button>
+                            className="capaCierreMenu"
+                            aria-label="Cerrar opciones del evento"
+                            onClick={() => setMenuEventoAbierto(null)}
+                          />
 
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className="opcionMenuEvento opcionMenuEventoPeligro"
-                            onClick={() => abrirEliminar(evento)}
-                          >
-                            Eliminar evento
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Botón flotante "+ Agregar evento" (Figma) */}
-      <div className="contenedorBotonAgregar">
-        <button
-          type="button"
-          className="botonAgregarEvento"
-          onClick={() => {
-            setErrorCreacion("");
-            setEventoRecienCreado(null);
-            setModalCrearAbierto(true);
-          }}
-          title="Agregar nuevo evento"
-        >
-          <span className="iconoMas">+</span>
-          <span className="textoBotonAgregar">
-            <span>Agregar</span>
-            <span>evento</span>
-          </span>
-        </button>
+                          <div className="menuOpcionesEvento" role="menu" style={menuEventoAbierto.posicion}>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className="opcionMenuEvento"
+                              onClick={() => abrirRenombrar(evento)}
+                            >
+                              Renombrar evento
+                            </button>
+                            <button
+                                type="button"
+                                role="menuitem"
+                                className="opcionMenuEvento"
+                                onClick={() => abrirEditarPrecio(evento)}
+                              >
+                                Editar precio por foto
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className="opcionMenuEvento opcionMenuEventoPeligro"
+                              onClick={() => abrirEliminar(evento)}
+                            >
+                              Eliminar evento
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* MODAL 1: CREAR EVENTO (Figma Component 1) */}
@@ -682,18 +806,6 @@ export default function PaginaEventosFotografo() {
                     <span className="etiquetaClave">ID del Evento:</span>
                     <div className="valorClaveContenedor">
                       <span className="valorClave">{eventoRecienCreado.idEvento}</span>
-                      <button
-                        type="button"
-                        className="botonCopiar"
-                        onClick={() =>
-                          copiarAlPortapapeles(
-                            String(eventoRecienCreado.idEvento),
-                            "ID de evento"
-                          )
-                        }
-                      >
-                        Copiar
-                      </button>
                     </div>
                   </div>
 
@@ -708,27 +820,6 @@ export default function PaginaEventosFotografo() {
                           copiarAlPortapapeles(
                             eventoRecienCreado.claveEntrar,
                             "Clave de entrar"
-                          )
-                        }
-                      >
-                        Copiar
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="filaClave">
-                    <span className="etiquetaClave">Clave de verificación de pago:</span>
-                    <div className="valorClaveContenedor">
-                      <span className="valorClave">
-                        {eventoRecienCreado.claveVerificacionPago}
-                      </span>
-                      <button
-                        type="button"
-                        className="botonCopiar"
-                        onClick={() =>
-                          copiarAlPortapapeles(
-                            eventoRecienCreado.claveVerificacionPago,
-                            "Clave de pago"
                           )
                         }
                       >
@@ -1024,6 +1115,72 @@ export default function PaginaEventosFotografo() {
                   alto={42}
                   type="submit"
                   disabled={guardandoNombre}
+                />
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {eventoEditarPrecio && (
+        <div className="modalFondo" onClick={cerrarEditarPrecio}>
+          <div
+            className="modalCaja"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloEditarPrecio"
+          >
+            <h3 id="tituloEditarPrecio" className="modalTitulo">
+              Editar precio por fotografía
+            </h3>
+
+            <form
+              className="modalFormulario"
+              onSubmit={manejarEditarPrecio}
+            >
+              <div className="modalCampo">
+                <label
+                  htmlFor="nuevoPrecioFoto"
+                  className="modalEtiqueta"
+                >
+                  Nuevo precio por fotografía
+                </label>
+
+                <input
+                  id="nuevoPrecioFoto"
+                  type="number"
+                  min="0"
+                  max="999999.99"
+                  step="0.01"
+                  className="modalInput"
+                  value={nuevoPrecio}
+                  onChange={(e) => setNuevoPrecio(e.target.value)}
+                  disabled={guardandoPrecio}
+                  required
+                />
+              </div>
+
+              {errorPrecio && (
+                <p className="modalMensajeError">{errorPrecio}</p>
+              )}
+
+              <div className="modalBotones">
+                <button
+                  type="button"
+                  className="botonPill"
+                  onClick={cerrarEditarPrecio}
+                  disabled={guardandoPrecio}
+                >
+                  Cancelar
+                </button>
+
+                <Boton
+                  texto={guardandoPrecio ? "Guardando..." : "Guardar precio"}
+                  ancho={160}
+                  alto={42}
+                  type="submit"
+                  disabled={guardandoPrecio}
                 />
               </div>
             </form>

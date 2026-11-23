@@ -44,6 +44,9 @@ export default function PaginaCarritoCliente() {
   const confirmandoRef = useRef(false);
   const visitaCarrito = useRef(0);
 
+  const [idFotoConfirmarQuitar, setIdFotoConfirmarQuitar] =
+  useState<number | null>(null);
+
   useLayoutEffect(() => {
     const visita = visitaCarrito.current;
     return () => {
@@ -167,7 +170,7 @@ export default function PaginaCarritoCliente() {
     <div className="contenedorCarritoCliente">
       <NavegacionCarpetas
         elementos={[
-          { texto: "Recientemente agregado", ruta: "/eventos", titulo: "Volver a Recientemente agregado" },
+          { texto: "Tus eventos", ruta: "/eventos", titulo: "Volver a Tus eventos" },
           {
             texto: nombreEvento,
             ruta: `/eventosCarpeta/${idEvento}`,
@@ -178,7 +181,35 @@ export default function PaginaCarritoCliente() {
         ]}
       />
 
-      <h1>Carrito de compras</h1>
+
+      <div className="encabezadoCarritoCompra">
+        <h1>Carrito de compras</h1>
+        {carrito &&(
+          <div className="resumenCarritoCompra">
+            <div className="tarjetaInfoEventoCliente resumenCarritoCliente">
+              <div className="detallesInfoEvento">
+                <p>
+                  <strong>Cantidad de fotografías:</strong>{" "}
+                  {carrito.cantidad}
+                </p>
+                <p className="totalCarritoCliente">
+                  <strong>Total:</strong> ${formatearPrecio(carrito.total)}
+                </p>
+              </div>
+
+              <Boton
+                texto="Finalizar compra"
+                aria-haspopup="dialog"
+                ancho={220}
+                alto={48}
+                onClick={abrirConfirmacionPedido}
+                disabled={idFotoQuitando !== null || confirmando}
+              />
+            </div>
+        </div>
+        )}
+        
+      </div>
 
       {mensajePedido && (
         <p className="modalMensajeExito" role="status">{mensajePedido}</p>
@@ -213,9 +244,9 @@ export default function PaginaCarritoCliente() {
 
       {!cargando && !error && carrito && carrito.fotos.length === 0 && (
         <div className="estadoVacio">
-          <p>
-            Todavía no has seleccionado fotografías para este evento.
-          </p>
+          {!mensajePedido && (
+            <p>Todavía no has seleccionado fotografías para este evento.</p>
+          )}
           <Boton
             texto="Volver al evento"
             ancho={200}
@@ -305,7 +336,7 @@ export default function PaginaCarritoCliente() {
                     <button
                       type="button"
                       className="botonPill"
-                      onClick={() => manejarQuitarFoto(foto.idFoto)}
+                      onClick={() => setIdFotoConfirmarQuitar(foto.idFoto)} 
                       disabled={idFotoQuitando !== null}
                       title={`Quitar ${foto.nombreFoto} del carrito`}
                       aria-label={`Quitar ${foto.nombreFoto} del carrito`}
@@ -400,6 +431,58 @@ export default function PaginaCarritoCliente() {
           </div>
         )}
       </dialog>
+      {idFotoConfirmarQuitar !== null && (
+        <div
+          className="modalFondo"
+          onClick={() => setIdFotoConfirmarQuitar(null)}
+        >
+          <div
+            className="modalCaja"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloQuitarFotografia"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="tituloQuitarFotografia" className="modalTitulo">
+              Quitar fotografía
+            </h3>
+
+            <p className="modalTexto">
+              ¿Estás seguro de que deseas quitar esta fotografía
+              de tu carrito?
+            </p>
+
+            <div className="modalBotones">
+              <button
+                type="button"
+                className="botonPill"
+                onClick={() => setIdFotoConfirmarQuitar(null)}
+                disabled={idFotoQuitando !== null}
+              >
+                Cancelar
+              </button>
+
+              <Boton
+                texto={
+                  idFotoQuitando !== null
+                    ? "Quitando..."
+                    : "Quitar fotografía"
+                }
+                ancho={170}
+                alto={42}
+                disabled={idFotoQuitando !== null}
+                onClick={async () => {
+                  if (idFotoConfirmarQuitar === null) return;
+
+                  await manejarQuitarFoto(idFotoConfirmarQuitar);
+
+                  setIdFotoConfirmarQuitar(null);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

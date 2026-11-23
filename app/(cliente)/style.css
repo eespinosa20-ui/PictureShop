@@ -184,7 +184,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 600px;
+  min-height: 0;
   position: relative;
 }
 
@@ -245,8 +245,28 @@
   font-weight: 700;
 }
 
+.resumenCarritoCompra {
+  width: auto;
+  max-width: none;
+  flex-shrink: 0;
+}
+
 .resumenCarritoCliente {
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  width: auto;
+  padding: 16px 20px;
+}
+
+.resumenCarritoCliente .detallesInfoEvento {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: max-content;
 }
 
 .modalCliente {
@@ -319,7 +339,7 @@
 /* Cuadrícula de fotos */
 .cuadriculaFotosCliente {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
   gap: 22px;
   width: 100%;
   padding-bottom: 40px;
@@ -404,6 +424,9 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.15s ease;
+
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .botonCarritoPill:hover {
@@ -742,5 +765,41 @@
 
   .detalleGuiaCliente p {
     font-size: 14px;
+  }
+}
+
+/* Encabezado y resumen del carrito */
+
+.encabezadoCarritoCompra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.encabezadoCarritoCompra h1 {
+  margin: 0;
+  flex: 1;
+}
+
+.resumenCarritoCompra {
+  width: 340px;
+  max-width: 45%;
+  flex-shrink: 0;
+}
+
+/* Ajuste para pantallas pequeñas */
+
+@media (max-width: 700px) {
+  .encabezadoCarritoCompra {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resumenCarritoCompra {
+    width: 100%;
+    max-width: none;
   }
 }

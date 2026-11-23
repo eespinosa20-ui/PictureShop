@@ -6,8 +6,8 @@ import Boton from "@/app/(componentes)/botones/boton";
 import NavegacionCarpetas from "@/app/(componentes)/navegacion/navegacionCarpetas";
 import { formatearPrecio } from "@/app/(componentes)/utilidades/precio";
 import {
-  agregarFotoCarrito,
-  notificarCarritoActualizado,
+  actualizarFotosCarrito,
+  escucharSeleccionCarrito,
   obtenerCarritoEvento,
 } from "@/app/(componentes)/carrito/apiCarrito";
 
@@ -40,8 +40,10 @@ export default function PaginaInteriorEventoCliente() {
   const [idsFotosCarrito, setIdsFotosCarrito] = useState<Set<number>>(
     new Set()
   );
-  const [idFotoAgregando, setIdFotoAgregando] = useState<number | null>(null);
-  const [agregandoTodas, setAgregandoTodas] = useState(false);
+  const [operacion, setOperacion] = useState<"individual" | "seleccionar" | "deseleccionar" | null>(null);
+  const [carritoDisponible, setCarritoDisponible] = useState(false);
+  const operacionEnCurso = useRef(false);
+  const todasSeleccionadas = fotos.length > 0 && fotos.every((foto) => idsFotosCarrito.has(foto.idFoto));
   const [mensajeAccion, setMensajeAccion] = useState("");
   const [mensajeAccionEsError, setMensajeAccionEsError] = useState(false);
   const temporizadorMensaje = useRef<ReturnType<typeof setTimeout> | null>(
@@ -49,6 +51,13 @@ export default function PaginaInteriorEventoCliente() {
   );
 
   useEffect(() => {
+    let activa = true;
+    let seleccionActualizada = false;
+    const dejarDeEscuchar = escucharSeleccionCarrito(idEvento, (carrito) => {
+      seleccionActualizada = true;
+      setIdsFotosCarrito(new Set(carrito.fotos.map((foto) => foto.idFoto)));
+      setCarritoDisponible(true);
+    });
     async function cargarFotosEvento() {
       if (!idEvento) return;
 
@@ -62,6 +71,7 @@ export default function PaginaInteriorEventoCliente() {
         ]);
 
         const resultado = await respuesta.json();
+        if (!activa) return;
 
         if (!respuesta.ok) {
           setError(
@@ -73,20 +83,31 @@ export default function PaginaInteriorEventoCliente() {
         setEvento(resultado.evento);
         setFotos(resultado.fotos || []);
 
+        if (seleccionActualizada) return;
+
         if (resultadoCarrito.exito) {
           setIdsFotosCarrito(
             new Set(resultadoCarrito.datos.fotos.map((foto) => foto.idFoto))
           );
+        } else {
+          setIdsFotosCarrito(new Set());
+          setMensajeAccion(resultadoCarrito.mensaje);
+          setMensajeAccionEsError(true);
         }
+        setCarritoDisponible(resultadoCarrito.exito);
       } catch (err) {
         console.error("Error al cargar fotos de evento:", err);
-        setError("No se pudo conectar con el servidor");
+        if (activa) setError("No se pudo conectar con el servidor");
       } finally {
-        setCargando(false);
+        if (activa) setCargando(false);
       }
     }
 
     cargarFotosEvento();
+    return () => {
+      activa = false;
+      dejarDeEscuchar();
+    };
   }, [idEvento]);
 
   useEffect(() => {
@@ -110,81 +131,39 @@ export default function PaginaInteriorEventoCliente() {
     }, 3500);
   }
 
-  async function manejarAgregarFoto(foto: FotoCliente) {
-    if (
-      idFotoAgregando !== null ||
-      agregandoTodas ||
-      idsFotosCarrito.has(foto.idFoto)
-    ) {
-      return;
-    }
-
-    setIdFotoAgregando(foto.idFoto);
+  async function modificarSeleccion(idsFotos: number[], seleccionar: boolean, masiva: boolean) {
+    if (!carritoDisponible || operacionEnCurso.current || !idsFotos.length) return;
+    operacionEnCurso.current = true;
+    setOperacion(masiva ? (seleccionar ? "seleccionar" : "deseleccionar") : "individual");
 
     try {
-      const resultado = await agregarFotoCarrito(idEvento, foto.idFoto);
-
-      if (!resultado.exito) {
-        mostrarMensajeCarrito(resultado.mensaje, true);
+      const errorOperacion = await actualizarFotosCarrito(idEvento, idsFotos, seleccionar);
+      if (errorOperacion !== null) {
+        mostrarMensajeCarrito(errorOperacion, true);
         return;
       }
-
-      setIdsFotosCarrito(
-        new Set(resultado.datos.carrito.fotos.map((item) => item.idFoto))
-      );
-      mostrarMensajeCarrito(
-        resultado.datos.yaExistia
-          ? "La fotografía ya estaba en el carrito."
-          : "Fotografía agregada al carrito."
-      );
+      const mensaje = masiva
+        ? (seleccionar ? "Todas las fotografías fueron agregadas al carrito." : "Se quitaron todas las fotografías del evento del carrito.")
+        : (seleccionar ? "Fotografía agregada al carrito." : "Fotografía quitada del carrito.");
+      mostrarMensajeCarrito(mensaje);
     } finally {
-      setIdFotoAgregando(null);
+      operacionEnCurso.current = false;
+      setOperacion(null);
     }
   }
 
-  async function manejarSeleccionarTodas() {
-    if (agregandoTodas || fotos.length === 0) {
-      return;
-    }
-
-    const fotosPendientes = fotos.filter(
-      (foto) => !idsFotosCarrito.has(foto.idFoto)
-    );
-
-    if (fotosPendientes.length === 0) {
-      mostrarMensajeCarrito("Todas las fotografías ya están en el carrito.");
-      return;
-    }
-
-    setAgregandoTodas(true);
-
-    try {
-      for (const foto of fotosPendientes) {
-        const resultado = await agregarFotoCarrito(idEvento, foto.idFoto, false);
-
-        if (!resultado.exito) {
-          notificarCarritoActualizado();
-          mostrarMensajeCarrito(resultado.mensaje, true);
-          return;
-        }
-
-        setIdsFotosCarrito(
-          new Set(resultado.datos.carrito.fotos.map((item) => item.idFoto))
-        );
-      }
-
-      notificarCarritoActualizado();
-      mostrarMensajeCarrito("Todas las fotografías fueron agregadas al carrito.");
-    } finally {
-      setAgregandoTodas(false);
-    }
+  function manejarSeleccionarTodas() {
+    const ids = todasSeleccionadas
+      ? [...idsFotosCarrito]
+      : fotos.filter((foto) => !idsFotosCarrito.has(foto.idFoto)).map((foto) => foto.idFoto);
+    void modificarSeleccion(ids, !todasSeleccionadas, true);
   }
 
   return (
-    <div className="contenedorInteriorEventoCliente">
+    <div className="contenedorInteriorEventoCliente paginaConDesplazamiento">
       <NavegacionCarpetas
         elementos={[
-          { texto: "Recientemente agregado", ruta: "/eventos", titulo: "Volver a Recientemente agregado" },
+          { texto: "Tus eventos", ruta: "/eventos", titulo: "Volver a Tus eventos" },
           { texto: evento?.nombreEvento ?? "Cargando...", icono: "carpeta" },
         ]}
       />
@@ -213,21 +192,17 @@ export default function PaginaInteriorEventoCliente() {
           {fotos.length > 0 && (
             <Boton
               texto={
-                agregandoTodas
+                operacion === "seleccionar"
                   ? "Agregando..."
-                  : idsFotosCarrito.size >= fotos.length
-                    ? "Todas seleccionadas"
-                    : "Seleccionar todas"
+                  : operacion === "deseleccionar"
+                    ? "Quitando..."
+                    : todasSeleccionadas ? "Deseleccionar todas" : "Seleccionar todas"
               }
               ancho={190}
               alto={42}
               onClick={manejarSeleccionarTodas}
-              disabled={
-                agregandoTodas ||
-                idFotoAgregando !== null ||
-                idsFotosCarrito.size >= fotos.length
-              }
-              title="Agregar todas las fotografías al carrito"
+              disabled={!carritoDisponible || operacion !== null}
+              title={todasSeleccionadas ? "Quitar todas las fotografías del evento del carrito" : "Agregar todas las fotografías al carrito"}
             />
           )}
 
@@ -244,113 +219,102 @@ export default function PaginaInteriorEventoCliente() {
             </p>
           )}
 
-          {/* Cuadrícula de fotos con marca de agua (Figma página 8) */}
-          {fotos.length === 0 ? (
-            <div className="estadoVacio">
-              <p>Aún no hay fotografías cargadas en este evento.</p>
-            </div>
-          ) : (
-            <div className="cuadriculaFotosCliente">
-              {fotos.map((foto) => (
-                <article
-                  key={foto.idFoto}
-                  className="tarjetaFotoCliente"
-                  onClick={() =>
-                    router.push(
-                      `/eventosFoto/${foto.idFoto}?idEvento=${evento.idEvento}`
-                    )
-                  }
-                  title={`Ver detalle de ${foto.nombreFoto}`}
-                >
-                  {/* Vista previa con marca de agua protegida */}
-                  <div className="marcoFotoCliente">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/fotos/${foto.idFoto}/vistaPrevia`}
-                      alt={foto.nombreFoto}
-                      className="imagenPreviaCliente"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  {/* Pie de la tarjeta */}
-                  <div className="pieFotoCliente">
-                    <div className="infoTextoFoto">
-                      <span className="etiquetaIdFoto" title={foto.nombreFoto}>
-                        ID: {foto.nombreFoto}
-                      </span>
-                      <span className="etiquetaPrecioFoto">
-                        Precio: ${formatearPrecio(evento.costoFoto)}
-                      </span>
+          <div className="areaDesplazableArchivos" role="region" aria-label="Fotografías del evento" tabIndex={0}>
+            {/* Cuadrícula de fotos con marca de agua (Figma página 8) */}
+            {fotos.length === 0 ? (
+              <div className="estadoVacio">
+                <p>Aún no hay fotografías cargadas en este evento.</p>
+              </div>
+            ) : (
+              <div className="cuadriculaFotosCliente">
+                {fotos.map((foto) => (
+                  <article
+                    key={foto.idFoto}
+                    className="tarjetaFotoCliente"
+                    onClick={() =>
+                      router.push(
+                        `/eventosFoto/${foto.idFoto}?idEvento=${evento.idEvento}`
+                      )
+                    }
+                    title={`Ver detalle de ${foto.nombreFoto}`}
+                  >
+                    {/* Vista previa con marca de agua protegida */}
+                    <div className="marcoFotoCliente">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/api/fotos/${foto.idFoto}/vistaPrevia`}
+                        alt={foto.nombreFoto}
+                        className="imagenPreviaCliente"
+                        loading="lazy"
+                      />
                     </div>
 
-                    <button
-                      type="button"
-                      className={`botonCarritoPill ${
-                        idsFotosCarrito.has(foto.idFoto)
-                          ? "botonCarritoPillAgregado"
-                          : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        manejarAgregarFoto(foto);
-                      }}
-                      disabled={
-                        idsFotosCarrito.has(foto.idFoto) ||
-                        idFotoAgregando !== null ||
-                        agregandoTodas
-                      }
-                      title={
-                        idsFotosCarrito.has(foto.idFoto)
-                          ? "Fotografía en el carrito"
-                          : idFotoAgregando === foto.idFoto
-                            ? "Agregando..."
-                            : "Agregar al carrito"
-                      }
-                      aria-label={
-                        idsFotosCarrito.has(foto.idFoto)
-                          ? "Fotografía en el carrito"
-                          : "Agregar al carrito"
-                      }
-                      aria-pressed={idsFotosCarrito.has(foto.idFoto)}
-                    >
-                      {idsFotosCarrito.has(foto.idFoto) ? (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
-                        >
-                          <circle cx="9" cy="21" r="1"></circle>
-                          <circle cx="20" cy="21" r="1"></circle>
-                          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+                    {/* Pie de la tarjeta */}
+                    <div className="pieFotoCliente">
+                      <div className="infoTextoFoto">
+                        <span className="etiquetaIdFoto" title={foto.nombreFoto}>
+                          ID: {foto.nombreFoto}
+                        </span>
+                        <span className="etiquetaPrecioFoto">
+                          Precio: ${formatearPrecio(evento.costoFoto)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className={`botonCarritoPill ${
+                          idsFotosCarrito.has(foto.idFoto)
+                            ? "botonCarritoPillAgregado"
+                            : ""
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void modificarSeleccion([foto.idFoto], !idsFotosCarrito.has(foto.idFoto), false);
+                        }}
+                        disabled={!carritoDisponible || operacion !== null}
+                        title={idsFotosCarrito.has(foto.idFoto) ? "Quitar del carrito" : "Agregar al carrito"}
+                        aria-label={idsFotosCarrito.has(foto.idFoto) ? "Quitar del carrito" : "Agregar al carrito"}
+                        aria-pressed={idsFotosCarrito.has(foto.idFoto)}
+                      >
+                        {idsFotosCarrito.has(foto.idFoto) ? (
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        ) : (
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
         </>
       )}
     </div>

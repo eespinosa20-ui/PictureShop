@@ -16,10 +16,12 @@ export default function PrincipalFotografo() {
           <div className="instruccionesFotografo">
             <p>1. Captura los momentos del evento</p>
 
-            <p>2. Sube tu carpeta a eventos</p>
+            <p>2. Ve a la pestaña eventos y agrega tu evento</p>
+
+            <p>3. Sube tu carpeta a eventos</p>
 
             <p>
-              3. Brinda el método de pago a tu comprador
+              4. Brinda el método de pago a tu comprador
               y espera para dar el código de acceso
               a la carpeta
             </p>

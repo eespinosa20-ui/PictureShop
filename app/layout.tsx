@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import IconoCarrito from "./(componentes)/carrito/iconoCarrito";
 import PerfilEncabezado from "./(componentes)/encabezado/perfilEncabezado";
+import MarcaDesplazamiento from "./(componentes)/navegacion/marcaDesplazamiento";
 
 export default function LayoutGlobal({
   children,
@@ -14,6 +15,9 @@ export default function LayoutGlobal({
     <html lang="es">
       <body>
         <div className="contenedorGlobal">
+          <Suspense fallback={null}>
+            <MarcaDesplazamiento />
+          </Suspense>
 
           <header className="encabezadoGlobal">
             <Image

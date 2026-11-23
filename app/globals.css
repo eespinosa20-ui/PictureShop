@@ -155,6 +155,133 @@ button.iconoAccionEncabezado {
   padding: 35px;
 }
 
+/* Desplazamiento interno de las vistas de archivos */
+.areaDesplazableArchivos {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.areaDesplazableArchivos > * {
+  flex-shrink: 0;
+}
+
+.areaDesplazableArchivos .listaEventos {
+  padding-bottom: 12px;
+}
+
+/* Una sola fila flexible para todo el contenido bajo el encabezado. */
+.contenedorGlobal:has(> [data-scroll-interno]) {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+  min-height: 0;
+  overflow: clip;
+
+  > .contenedorPrincipal,
+  .layoutCliente,
+  .contenidoCliente,
+  .pantallaCliente {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .contenidoCliente {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  :is(.menuCliente, .menuFotografo) {
+    min-height: 0;
+  }
+
+  .paginaConDesplazamiento {
+    min-height: 0;
+    min-width: 0;
+    overflow: clip;
+  }
+
+  .paginaConDesplazamiento > :not(.areaDesplazableArchivos, .tablaDriveContenedor) {
+    flex-shrink: 0;
+  }
+
+  .tablaDriveContenedor {
+    min-height: 0;
+  }
+
+  .cabeceraTablaDrive {
+    flex-shrink: 0;
+    overflow-y: hidden;
+  }
+
+  .tablaDriveContenedor > :is(.cabeceraTablaDrive, .areaDesplazableArchivos) {
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (max-height: 650px) {
+  .contenedorGlobal:has(> [data-scroll-interno]) {
+    padding-bottom: 12px;
+
+    > .contenedorPrincipal,
+    .pantallaCliente {
+      padding-block: 12px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .contenedorGlobal:has(> [data-scroll-interno]) {
+    padding-inline: 15px;
+
+    > .contenedorPrincipal {
+      padding-inline: 16px;
+    }
+
+    .pantallaCliente {
+      padding-inline: 0;
+    }
+  }
+
+  .paginaConDesplazamiento :is(.tarjetaEvento, .accionesTarjetaEvento, .tarjetaInfoEventoCliente) {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) and (pointer: coarse) {
+  .contenedorGlobal:has(> [data-scroll-interno]) {
+    display: block;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+
+    > .contenedorPrincipal,
+    .layoutCliente,
+    .contenidoCliente,
+    .pantallaCliente {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contenidoCliente > :is(.menuCliente, .menuFotografo) {
+      width: 100%;
+      min-width: 0;
+    }
+
+    :is(.paginaConDesplazamiento, .areaDesplazableArchivos) {
+      overflow: visible;
+    }
+  }
+}
+
 /* ==========================================
    COMPONENTES Y UTILIDADES COMPARTIDAS
    ========================================== */
@@ -171,6 +298,42 @@ button.iconoAccionEncabezado {
   background-color: #AABAAE;
   border-radius: 8px;
   box-sizing: border-box;
+}
+
+/* ==========================================
+   BARRA DE BUSQUEDA Y ACCIONES DE EVENTOS
+   ========================================== */
+
+.barraAccionesEventos {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.barraAccionesEventos .contenedorBuscador {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  margin-bottom: 0;
+}
+
+.barraAccionesEventos .contenedorBotonAgregar {
+  position: static;
+  flex-shrink: 0;
+}
+
+@media (max-width: 650px) {
+  .barraAccionesEventos {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .barraAccionesEventos .contenedorBotonAgregar {
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 
 /* CAMPO INTERIOR */
@@ -220,7 +383,6 @@ button.iconoAccionEncabezado {
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  padding-bottom: 90px;
 }
 
 .tarjetaEvento {
@@ -291,9 +453,8 @@ button.iconoAccionEncabezado {
 }
 
 .menuOpcionesEvento {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 16px;
+  position: fixed;
+  overflow-y: auto;
   z-index: 20;
   display: flex;
   flex-direction: column;
