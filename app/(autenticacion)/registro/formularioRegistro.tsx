@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Boton from "../../(componentes)/botones/boton";
 import { useRouter } from "next/navigation";
+import { evaluarContrasena } from "../requisitosContrasena";
 
 
 type Propiedades = {
@@ -63,16 +64,7 @@ export default function FormularioRegistro({
     setMensajeExito("");
   };
 
-  const requisitosContrasena = [
-    {
-      texto: "Minimo 8 caracteres",
-      valido: datos.contrasena.length >= 8,
-    },
-    {
-      texto: "Un caracter especial",
-      valido: /[^A-Za-z0-9]/.test(datos.contrasena),
-    },
-  ];
+  const requisitosContrasena = evaluarContrasena(datos.contrasena);
 
   const requisitosCumplidos =
     requisitosContrasena.filter(

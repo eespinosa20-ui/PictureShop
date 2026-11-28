@@ -1,7 +1,7 @@
 
 import conexion from "../baseDatos/conexion";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import argon2 from "argon2";
+import { generarHashContrasena } from "./hashContrasena";
 
 interface ClienteEncontrado extends RowDataPacket {
   idCliente: number;
@@ -28,7 +28,7 @@ export async function existeCorreoCliente(correo: string):
 
 export async function registrarUsuarioCliente(nombre: string, telefono: string, correo: string, contrasena: string) {
 
-    const contrasenaHash = await argon2.hash(contrasena);
+    const contrasenaHash = await generarHashContrasena(contrasena);
     const sql = "INSERT INTO usuarioCliente (nombre, telefono, correo, contrasena, fechaRegistro) VALUES (?, ?, ?, ?, NOW())";
     const valores = [nombre, telefono, correo, contrasenaHash];
 
